@@ -19,3 +19,4 @@ C:\Users\owner\Documents\GitHub\LanChat\Project\obj\Debug\net9.0-windows\ref\Pro
 C:\Users\owner\Documents\GitHub\LanChat\Project\obj\Debug\net9.0-windows\MainWindow.g.cs
 C:\Users\owner\Documents\GitHub\LanChat\Project\obj\Debug\net9.0-windows\App.g.cs
 C:\Users\owner\Documents\GitHub\LanChat\Project\obj\Debug\net9.0-windows\MainWindow.baml
+C:\Users\owner\Documents\GitHub\LanChat\Project\obj\Debug\net9.0-windows\App.baml
