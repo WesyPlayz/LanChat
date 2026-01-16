@@ -12,7 +12,11 @@ namespace LanChat.NetworkSystem;
 public enum Mode { IDL  , SRV , HST   }
 public enum Role { NOMAD, USER, ADMIN }
 
-public sealed class Client
+/// <summary>
+/// Description :
+///     Manages access to and storage of the data and connection of a client.
+/// </summary>
+public sealed class Client 
 {
     #region INTERNAL PROPERTIES
 
@@ -33,6 +37,12 @@ public sealed class Client
     #endregion
     #region INTERNAL CONSTRUCTOR
 
+    /// <summary>
+    /// Description :
+    ///     Initializes the client with a connection.
+    /// </summary>
+    /// <param name="iID"></param>
+    /// <param name="connection"></param>
     internal Client ( uint iID, TcpClient connection ) 
     {
         if ( iID != Bridge._AUTHENTICATOR_ ) return;
@@ -43,6 +53,13 @@ public sealed class Client
     #endregion
     #region PUBLIC   CONSTRUCTOR
 
+    /// <summary>
+    /// Description :
+    ///     Initializes the client with a username and password.
+    /// </summary>
+    /// <param name="iID"></param>
+    /// <param name="username"></param>
+    /// <param name="password"></param>
     public Client ( uint iID, uint username, uint password ) 
     {
         this._CONNECTION_ = null               ;
@@ -55,13 +72,13 @@ public sealed class Client
     #endregion
     #region PRIVATE  SECURITY
 
+    /// <summary>
+    /// Description :
+    ///     Encrypts the given value using a hash operation.
+    /// </summary>
+    /// <param name="password"></param>
+    /// <returns></returns>
     private static uint Encrypt ( uint password ) 
-    {
-        // TODO;
-
-        return uint.MinValue; // TEMP
-    }
-    private static uint Decrypt ( uint password ) 
     {
         // TODO;
 
@@ -71,19 +88,40 @@ public sealed class Client
     #endregion
     #region INTERNAL ACCESSORS
 
+    /// <summary>
+    /// Description :
+    ///     Sets the password of the client if given the correct authenticator code and password.
+    /// </summary>
+    /// <param name="iID"></param>
+    /// <param name="password"></param>
+    /// <param name="npassword"></param>
     internal void Set_Password ( uint iID, uint password, uint npassword ) 
     {
-        if ( iID != Bridge._AUTHENTICATOR_ || password != this._PASSWORD_ ) return;
-
-        this._PASSWORD_ = Encrypt( npassword );
+        this._PASSWORD_ = (
+            this.Is_Password( iID, password ) ? Encrypt( password ) : 
+            this._PASSWORD_ 
+        );
     }
-    internal uint Get_Password ( uint iID                                ) 
+
+    /// <summary>
+    /// Description :
+    ///     Verifies whether the password is the client password if given the correct authenticator code.
+    /// </summary>
+    /// <param name="iID"></param>
+    /// <returns></returns>
+    internal bool Is_Password( uint iID, uint password )
     {
-        if ( iID != Bridge._AUTHENTICATOR_ ) return uint.MinValue;
-
-        return Decrypt( this._PASSWORD_ );
+        if (iID != Bridge._AUTHENTICATOR_ || Encrypt( password ) != this._PASSWORD_ ) return false;
+        return true;
     }
 
+    /// <summary>
+    /// Description :
+    ///     Sets the username of the client if given the correct authenticator code and password.
+    /// </summary>
+    /// <param name = "iID"></param>
+    /// <param name = "password"></param>
+    /// <param name = "username"></param>
     internal void Set_Username ( uint iID, uint password, uint username  ) 
     {
         if ( iID != Bridge._AUTHENTICATOR_ || password != this._PASSWORD_ ) return;
@@ -94,7 +132,11 @@ public sealed class Client
     #endregion
 }
 
-public static class Bridge
+/// <summary>
+/// Description :
+///     Manages the bridge between client-server/localhost communication during runtime.
+/// </summary>
+public static class Bridge 
 {
     #region INTERNAL PROPERTIES
 
@@ -108,18 +150,33 @@ public static class Bridge
     #endregion
     #region PRIVATE  DLLIMPORTS
 
+    /// <summary>
+    /// Description :
+    ///     Initializes a console interface window.
+    /// </summary>
+    /// <returns></returns>
     [ DllImport( "kernel32.dll" )]
     private static extern bool AllocConsole ();
 
     #endregion
     #region PUBLIC   INITIALIZATION
 
+    /// <summary>
+    /// Description :
+    ///     Initializes the authenticator code used for data security authenticity.
+    /// </summary>
     public static void Init_Authentication (           ) 
     {
         if (_AUTHENTICATOR_ != uint.MinValue) return; 
         
         _AUTHENTICATOR_ = ( uint )( new Random().NextInt64( 4000000000, uint.MaxValue ));
     }
+
+    /// <summary>
+    /// Description :
+    ///     Initializes the given network mode.
+    /// </summary>
+    /// <param name = "mode"></param>
     public static void Init_Network        ( Mode mode ) 
     {
         switch ( mode )
@@ -153,15 +210,32 @@ public static class Bridge
     #endregion
     #region PRIVATE  RUNTIME
 
+    /// <summary>
+    /// Description :
+    ///     Initializes a server runtime environment utilizing a 
+    /// console interface window to retrieve text input commands.
+    /// </summary>
     private static void Runtime_SRV () 
     {
         Application.Current.MainWindow.Hide();
         AllocConsole();
     }
+
+    /// <summary>
+    /// Description :
+    ///     Initializes a localhost runtime environment alongside 
+    /// the window application to resolve client-localhost communication.
+    /// </summary>
     private static void Runtime_HST () 
     {
         // TODO;
     }
+
+    /// <summary>
+    /// Description :
+    ///     Initializes a lan runtime environment alongside the 
+    /// window application to catch any connecting clients.
+    /// </summary>
     private static void Runtime_LAN () 
     {
         // TODO;
