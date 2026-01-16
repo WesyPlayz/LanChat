@@ -20,9 +20,15 @@ LanChat is designed percisely for people in work environments who need a fast an
   ( 3 ) Basic text to chat interface synced to incoming messages from all clients
   ( 4 ) Serialization system via SQL Database or custom data parser/interpreter
   ( 5 ) Opt-in auto login system via client local data sender via custom data parser/interpreter
-? ( 6 ) Message batching system for interface lazy loading of chat history
+  ( 6 ) Client data split-knowledge authentication system
+? ( 7 ) Message batching system for interface lazy loading of chat history
 
-# Tech
+## Tech
 subject to change
-( 1 ) C# programming language
-( 2 ) Microsoft Visual Studio 2022
+( 1 ) .NET 9.0 Framework
+( 2 ) C# programming language
+( 3 ) XAML Markup Language
+( 4 ) Microsoft Visual Studio 2022
+
+## Dependencies
+( 1 ) Windows Presentation Foundation - WPF
