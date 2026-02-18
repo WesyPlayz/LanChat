@@ -1,25 +1,27 @@
-﻿namespace LanChat.MessageSystem;
+﻿using static System.Net.Mime.MediaTypeNames;
+
+namespace LanChat.MessageSystem;
 
 /// <summary>
 /// Description :
 ///     An object that contains message data and runtime metadata.
 /// </summary>
-public sealed class Message  
+public sealed class Message
 {
     #region INTERNAL PROPERTIES
 
-    internal static List < Message > _MESSAGES_ { get; private set; } = new();
+    internal uint     _ID_   { get; set; }
 
-    internal uint _ID_ { get; private set; }
+    internal Message  _NEXT_ { get; set; }
+    internal Message  _PREV_ { get; set; }
 
     #endregion
     #region PUBLIC   PROPERTIES
+    
+    public        DateTime Time   ;
 
-    public static Batch    Batch   = new();
-
-    public        string   Sender         ;
-    public        DateTime Time           ;
-    public        string   Content        ;
+    public        string   Sender ;
+    public        string   Content;
 
     #endregion
     #region PUBLIC   CONSTRUCTOR
@@ -33,13 +35,11 @@ public sealed class Message
     /// <param name="content"></param>
     public Message ( string sender, DateTime time, string content ) 
     {
-        _MESSAGES_.Add( this );
-
-        this._ID_ = ( uint )_MESSAGES_.Count - 1;
-
         this.Sender  = sender ;
         this.Time    = time   ;
         this.Content = content;
+
+        Batch.Include( this );
     }
 
     #endregion
@@ -49,26 +49,42 @@ public sealed class Message
 
 /// <summary>
 /// Description :
-///     An object that represents an element in the batch, stores the runtime id of a message.
-/// </summary>
-public sealed class eMessage 
-{
-    public uint     ID  ;
-
-    public eMessage Next;
-    public eMessage Prev;
-
-    // TODO;
-}
-
-/// <summary>
-/// Description :
 ///     An object that contains a doubly linked list of elements which store message runtime ids.
 /// </summary>
-public sealed class Batch    
+public sealed class Batch ( Message first )
 {
-    public eMessage First;
-    public eMessage Last ;
+    #region INTERNAL PROPERTIES
 
-    // TODO;
+    internal static List < Batch > _BATCHES_ { get; private set; } = new();
+
+    internal static int            _bSIZ_    { get;         set; } = 20;
+    internal static int            _UNF_     { get;         set; }
+
+    internal        int            Size = 1;
+
+    #endregion
+
+    public Message  First = first;
+    public Message  Last  = first;
+
+    public static void Include ( Message message )
+    {
+        if ( _UNF_ < _BATCHES_.Count )
+        {
+            message._ID_   = _BATCHES_[ _UNF_ ].Last._ID_ + 1;
+            message._PREV_ = _BATCHES_[ _UNF_ ].Last         ;
+
+            _BATCHES_[ _UNF_ ].Last._NEXT_ = message;
+            _BATCHES_[ _UNF_ ].Last        = message;
+
+            _BATCHES_[ _UNF_ ].Size++;
+
+            if ( _BATCHES_[ _UNF_ ].Size == _bSIZ_ ) _UNF_++;
+
+            return;
+        }
+        message._ID_ = 0;
+
+        _BATCHES_.Add( new ( message ));
+    }
 }

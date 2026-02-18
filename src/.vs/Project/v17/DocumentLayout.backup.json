@@ -3,24 +3,24 @@
   "WorkspaceRootPath": "C:\\Users\\owner\\Documents\\GitHub\\LanChat\\src\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{167854E8-7229-C63A-099E-C75E793CAF57}|Project.csproj|c:\\users\\owner\\documents\\github\\lanchat\\src\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{167854E8-7229-C63A-099E-C75E793CAF57}|Project.csproj|solutionrelative:mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{167854E8-7229-C63A-099E-C75E793CAF57}|Project.csproj|c:\\users\\owner\\documents\\github\\lanchat\\src\\app.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{167854E8-7229-C63A-099E-C75E793CAF57}|Project.csproj|solutionrelative:app.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{167854E8-7229-C63A-099E-C75E793CAF57}|Project.csproj|c:\\users\\owner\\documents\\github\\lanchat\\src\\serialsystem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{167854E8-7229-C63A-099E-C75E793CAF57}|Project.csproj|solutionrelative:serialsystem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{167854E8-7229-C63A-099E-C75E793CAF57}|Project.csproj|c:\\users\\owner\\documents\\github\\lanchat\\src\\messagesystem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{167854E8-7229-C63A-099E-C75E793CAF57}|Project.csproj|solutionrelative:messagesystem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{167854E8-7229-C63A-099E-C75E793CAF57}|Project.csproj|c:\\users\\owner\\documents\\github\\lanchat\\src\\app.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{167854E8-7229-C63A-099E-C75E793CAF57}|Project.csproj|solutionrelative:app.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{167854E8-7229-C63A-099E-C75E793CAF57}|Project.csproj|c:\\users\\owner\\documents\\github\\lanchat\\src\\networksystem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{167854E8-7229-C63A-099E-C75E793CAF57}|Project.csproj|solutionrelative:networksystem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{167854E8-7229-C63A-099E-C75E793CAF57}|Project.csproj|c:\\users\\owner\\documents\\github\\lanchat\\src\\serialsystem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{167854E8-7229-C63A-099E-C75E793CAF57}|Project.csproj|solutionrelative:serialsystem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{167854E8-7229-C63A-099E-C75E793CAF57}|Project.csproj|c:\\users\\owner\\documents\\github\\lanchat\\src\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{167854E8-7229-C63A-099E-C75E793CAF57}|Project.csproj|solutionrelative:mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{167854E8-7229-C63A-099E-C75E793CAF57}|Project.csproj|c:\\users\\owner\\documents\\github\\lanchat\\src\\timesystem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -34,7 +34,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 6,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Document",
@@ -44,23 +44,25 @@
               "RelativeDocumentMoniker": "NetworkSystem.cs",
               "ToolTip": "C:\\Users\\owner\\Documents\\GitHub\\LanChat\\src\\NetworkSystem.cs",
               "RelativeToolTip": "NetworkSystem.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAIoAAAAbAAAAAAAAAA==",
+              "ViewState": "AgIAAC0AAAAAAAAAAAAswBwAAAAhAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-01-15T06:21:04.246Z",
-              "IsPinned": true
+              "IsPinned": true,
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 0,
               "Title": "SerialSystem.cs",
               "DocumentMoniker": "C:\\Users\\owner\\Documents\\GitHub\\LanChat\\src\\SerialSystem.cs",
               "RelativeDocumentMoniker": "SerialSystem.cs",
               "ToolTip": "C:\\Users\\owner\\Documents\\GitHub\\LanChat\\src\\SerialSystem.cs",
               "RelativeToolTip": "SerialSystem.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAfAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-01-15T09:43:05.959Z",
-              "IsPinned": true
+              "IsPinned": true,
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -73,7 +75,8 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-01-15T11:12:55.856Z",
-              "IsPinned": true
+              "IsPinned": true,
+              "EditorCaption": ""
             },
             {
               "$type": "Bookmark",
@@ -81,19 +84,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 1,
               "Title": "MessageSystem.cs",
               "DocumentMoniker": "C:\\Users\\owner\\Documents\\GitHub\\LanChat\\src\\MessageSystem.cs",
               "RelativeDocumentMoniker": "MessageSystem.cs",
               "ToolTip": "C:\\Users\\owner\\Documents\\GitHub\\LanChat\\src\\MessageSystem.cs",
               "RelativeToolTip": "MessageSystem.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-16T00:28:27.618Z"
+              "WhenOpened": "2026-01-16T00:28:27.618Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "App.xaml.cs",
               "DocumentMoniker": "C:\\Users\\owner\\Documents\\GitHub\\LanChat\\src\\App.xaml.cs",
               "RelativeDocumentMoniker": "App.xaml.cs",
@@ -101,11 +105,12 @@
               "RelativeToolTip": "App.xaml.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABYAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-15T09:42:08.292Z"
+              "WhenOpened": "2026-01-15T09:42:08.292Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 4,
               "Title": "MainWindow.xaml.cs",
               "DocumentMoniker": "C:\\Users\\owner\\Documents\\GitHub\\LanChat\\src\\MainWindow.xaml.cs",
               "RelativeDocumentMoniker": "MainWindow.xaml.cs",

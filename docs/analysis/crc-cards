@@ -1,0 +1,62 @@
+## Bridge
+
+**Responsibilities**
+- Manages Current System Runtime Environment ( i.e. Server, Local Host, Client ).
+- Contains Server-side Authenticator for Verification.
+- Accepts Inbound Client Connections and Hands Them To Runtime Client Wrapper.
+- Routes Messages from Clients to Message Storage.
+- Issues Serialization Requests of Message data to the Serializer.
+
+**Collaborators**
+- App
+- Client
+- Message
+- Serializer
+
+## App
+
+**Responsibility**
+- Collects User Credentials and Initiates Login Process through Bridge.
+- Server Discovery for Connection.
+- Sends Messages to Bridge.
+- Displays Batched Messages.
+- Routes Server-side Message Dispatch to Client-side Message Storage.
+- Stores User specific Data locally via the Serializer.
+
+**Collaborators**
+- Bridge
+- Message
+- Serializer
+
+## Client
+
+**Responsibilities**
+- Stores TCP Client Connection.
+- Stores User info and Runtime State.
+- Handles User Authentication for verification.
+
+**Collaborators**
+- Bridge
+
+## Message
+
+**Responsibilities**
+- Stores all Messages Recieved from Bridge or App.
+- Sends Batches of Messages to App Relative to Scroll Position.
+- Tracks Message Payload and Metadata.
+
+**Collaborators**
+- Bridge
+- App
+
+## Serializer
+
+**Responsibilities**
+- Stores Data from Bridge.
+- Retrieves Serialized Data and Sends to Bridge.
+- Stores personalized local Data for User.
+- Retrieves Serialized local data to User.
+
+**Collaborators**
+- Bridge
+- App
