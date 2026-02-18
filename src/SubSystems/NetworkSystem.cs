@@ -8,7 +8,6 @@ using System.Text;
 #region LANCHAT HEADER
 
 using LanChat.CoreSystem;
-using LanChat.MessageSystem;
 using LanChat.SerialSystem;
 
 #endregion
@@ -62,6 +61,9 @@ internal sealed class Client_RUNTIME : Runtime
 
     private Server?        _SERV_  = null             ;
     private DateTime       _GTIM_  = DateTime.MinValue;
+    private int            _fREQ_  = 0                ;
+
+    private List< string > _eQUE_  = []               ;
 
     #endregion
     #region INTERNAL OVERRIDE FUNCTIONS
@@ -136,21 +138,34 @@ internal sealed class Client_RUNTIME : Runtime
     /// </summary>
     /// <param name = "idx"></param>
     /// <returns></returns>
-    internal void _CNCT_ ( int    idx  ) 
+    internal bool _CNCT_ ( int    idx  ) 
     {
-        if ( this._SERVs_[ idx ].Equals( this._SERV_ ) ) return;
+        int atmps = 0;
 
-        this._SYNC_.Start ();
-        this._CLNT_ = new ();
+        while ( this._SERVs_.Count <= 0 )
+        {
+            Thread.Sleep( 16 );
+            atmps++;
 
-        Task.Run( async () => { 
-            await this._CLNT_.ConnectAsync( this._SERVs_[ idx ].ip, this._SERVs_[ idx ].port );
+            if ( atmps == 20 ) return false;
+        }
+        if ( this._SERVs_[ idx ].Equals( this._SERV_ ) ) return false;
+
+        this._SYNC_.Start   ();
+        this._CLNT_ ??= new ();
+
+        Task.Run( async () => {
+            this._SERV_ = this._SERVs_[ idx ];
+
+            await this._CLNT_.ConnectAsync( this._SERV_.ip, this._SERV_.port );
 
             this._STRM_ = this._CLNT_.GetStream();
 
             await this._COMM_();
+
+            this._SYNC_.Stop();
         });
-        this._SYNC_.Stop();
+        return true;
     }
 
     #endregion
@@ -161,7 +176,7 @@ internal sealed class Client_RUNTIME : Runtime
     /// </summary>
     /// <param name = "cmd" ></param>
     /// <param name = "pyld"></param>
-    internal      void _SEND_ ( string cmd, string pyld ) 
+    internal      void _SEND_ ( string   cmd  , string pyld ) 
     {
         byte[] rqst = Encoding.UTF8.GetBytes( $"{ cmd } { Serializer.Splitter } { pyld } { Serializer.Terminator }" );
 
@@ -172,7 +187,7 @@ internal sealed class Client_RUNTIME : Runtime
     /// 
     /// </summary>
     /// <returns></returns>
-    private async Task _COMM_ (                         ) 
+    private async Task _COMM_ (                             ) 
     {
         this._SYNC_.Start();
 
@@ -202,6 +217,37 @@ internal sealed class Client_RUNTIME : Runtime
             if ( elmts.Length == 0 ) break;
 
             if ( elmts.Length <= 1 || !Bridge._OPCDs_.Contains( elmts[ 0 ] ) ) continue;
+
+            for ( int idx = 0; idx < Bridge._OPCDs_.Length; idx++ )
+            {
+                if ( elmts[ 0 ].Equals( Bridge._OPCDs_[ idx ] ) )
+                {
+                    if ( idx == 1 && elmts.Length == 2 )
+                    {
+                        if ( !int.TryParse( elmts[ 1 ], out int num ) ) break;
+
+                        this._fREQ_ = num;
+
+                        this._eQUE_.Clear();
+                    }
+                    else if ( idx == 2 && this._fREQ_ > 0 )
+                    {
+                        for ( int eIdx = 1; eIdx < elmts.Length; eIdx++ ) this._eQUE_.Add( elmts[ eIdx ] );
+
+                        this._fREQ_--;
+
+                        if ( this._fREQ_ == 0 )
+                        {
+                            Bridge._COPLs_![ idx ]?.Invoke( [ .. this._eQUE_ ] );
+
+                            this._eQUE_ = [];
+                        }
+                    }
+                    else Bridge._COPLs_![ idx ]?.Invoke( elmts );
+
+                    break;
+                }
+            }
         }
         this._SYNC_.Stop();
     }
@@ -238,8 +284,8 @@ internal sealed class Client_RUNTIME : Runtime
 
                 if ( !this._SERVs_.Contains( serv ) ) this._SERVs_.Add( serv );
             }
+            this._SYNC_.Stop();
         });
-        this._SYNC_.Stop();
     }
 
     /// <summary>
@@ -300,6 +346,8 @@ internal sealed class Server_RUNTIME : Runtime
     private TcpListener?   _SERV_  = null         ;
     private string         _PSWD_  = Bridge._DFLT_;
 
+    private int            _fREQ_  = 0            ;
+
     #endregion
     #region INTERNAL OVERRIDE FUNCTIONS
 
@@ -358,9 +406,24 @@ internal sealed class Server_RUNTIME : Runtime
     /// </summary>
     /// <param name = "cmd" ></param>
     /// <param name = "pyld"></param>
-    internal      void _SEND_ ( NetworkStream strm, string cmd, string pyld ) 
+    internal      void _SEND_ ( NetworkStream strm, string   pyld  ) 
     {
-        byte[] rqst = Encoding.UTF8.GetBytes( $"{ cmd } { Serializer.Splitter } { pyld } { Serializer.Terminator }" );
+        byte[] rqst = Encoding.UTF8.GetBytes( $"{ Bridge._OPCDs_[ 0 ] } { Serializer.Splitter } { pyld } { Serializer.Terminator }" );
+
+        strm.Write( rqst, 0, rqst.Length );
+    }
+
+    internal      void _FILL_ ( NetworkStream strm, string   pyld  )
+    {
+        byte[] rqst = [];
+        int    idx  = 1 ;
+
+        if ( this._fREQ_ != 0 )
+        {
+            idx         = 2;
+            this._fREQ_--  ;
+        }
+        rqst = Encoding.UTF8.GetBytes( $"{ Bridge._OPCDs_[ idx ] } { Serializer.Splitter } { pyld } { Serializer.Terminator }" );
 
         strm.Write( rqst, 0, rqst.Length );
     }
@@ -371,7 +434,7 @@ internal sealed class Server_RUNTIME : Runtime
     /// <param name = "clnt"></param>
     /// <param name = "id"  ></param>
     /// <returns></returns>
-    private async Task _COMM_ ( TcpClient     clnt, uint   id               ) 
+    private async Task _COMM_ ( TcpClient     clnt, uint   id                ) 
     {
         this._SYNC_.Start();
 
@@ -398,13 +461,23 @@ internal sealed class Server_RUNTIME : Runtime
 
                 if ( rend != -1 )
                 {
-                    rmng  = rqst.Substring                        ( rend + Serializer.Terminator.Length );
-                    elmts = rqst.Substring( 0, rend ).Trim().Split( Serializer.Splitter                 );
+                    rmng  = rqst[ ( rend + Serializer.Terminator.Length ) .. ]                                    ;
+                    elmts = rqst[ .. rend                                    ].Trim().Split( Serializer.Splitter );
                 }
             }
             if ( elmts.Length == 0 ) break;
 
             if ( elmts.Length <= 1 || !Bridge._OPCDs_.Contains( elmts[ 0 ] ) ) continue;
+
+            for ( int idx = 0; idx < Bridge._OPCDs_.Length; idx++ )
+            {
+                if ( elmts[ 0 ].Equals( Bridge._OPCDs_[ idx ] ) )
+                {
+                    Bridge._SOPLs_![ idx ]?.Invoke( strm, elmts );
+
+                    break;
+                }
+            }
         }
         this._CLNTs_.Remove( wrpr );
         clnt.Close         (      );
@@ -450,6 +523,7 @@ internal sealed class Server_RUNTIME : Runtime
     {
         this._SYNC_.Start (                              );
         this._SERV_ = new ( IPAddress.Any, Bridge._cPRT_ );
+        this._SERV_.Start();
 
         Task.Run( async () => {
             uint id = default;
@@ -626,13 +700,22 @@ public class Bridge
     internal readonly static int      _cPRT_  = 6000     ;
 
     internal readonly static string   _DFLT_  = "LC-SERV";
-    internal readonly static string[] _OPCDs_ =
+
+    internal readonly static string[] _OPCDs_ = 
     {
         "SND",
+        "FIL",
+        "NXT",
         "REQ",
         "UPD",
         "DEL"
     };
+
+    #endregion
+    #region INTERNAL STATIC PROPERTIES
+
+    internal static List < Action <                string[] >? >? _COPLs_ { get; private set; }
+    internal static List < Action < NetworkStream, string[] >? >? _SOPLs_ { get; private set; }
 
     #endregion
     #region PRIVATE  STATIC FIELDS
@@ -640,6 +723,9 @@ public class Bridge
     private static Runtime? _RNTM_ = null;
 
     #endregion
+
+    public static bool Active => _RNTM_ != null;
+
     #region PUBLIC   STATIC INITIALIZERS
 
     /// <summary>
@@ -649,10 +735,17 @@ public class Bridge
     {
         switch ( mode )
         {
-            case Mode.CNT : _RNTM_ = new Client_RUNTIME(); break;
-            case Mode.SRV : _RNTM_ = new Server_RUNTIME(); break;
+            case Mode.CNT : 
+                _RNTM_  = new Client_RUNTIME()                  ;
+                _COPLs_ = [ null, null, null, null, null, null ];
+            break;
 
-            default       : return;
+            case Mode.SRV : 
+                _RNTM_  = new Server_RUNTIME()                  ; 
+                _SOPLs_ = [ null, null, null, null, null, null ];
+            break;
+
+            default : return;
         }
     }
 
@@ -668,23 +761,62 @@ public class Bridge
     /// </summary>
     public static void Stop  () => _RNTM_?._STOP_();
 
-    public static void Connect ()
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "opcd"></param>
+    /// <param name = "func"></param>
+    public static void Add ( string opcd, Action < string[] > func )
     {
+        if ( !_OPCDs_.Contains( opcd ) ) return;
 
+        if ( _RNTM_ is Client_RUNTIME && _COPLs_ != null ) _COPLs_[ Array.IndexOf( _OPCDs_, opcd ) ] = func;
     }
 
-    public static DateTime? Time () => _RNTM_?._TIME_();
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "opcd"></param>
+    /// <param name = "func"></param>
+    public static void Add ( string opcd, Action < NetworkStream, string[] > func )
+    {
+        if ( !_OPCDs_.Contains( opcd ) ) return;
+
+        if ( _RNTM_ is Server_RUNTIME && _SOPLs_ != null ) _SOPLs_[ Array.IndexOf( _OPCDs_, opcd ) ] = func;
+    }
+
+    #region CLIENT SPECIFIC
+
+    public static void Search ( string pswd )
+    {
+        if ( _RNTM_ is Client_RUNTIME rntm ) rntm._STRT_( pswd );
+    }
+
+    public static bool Connect ( int idx )
+    {
+        if ( _RNTM_ is Client_RUNTIME rntm ) return rntm._CNCT_( idx );
+
+        return false;
+    }
 
     public static void Send     ( string pyld ) 
     {
+        if ( _RNTM_ is Client_RUNTIME rntm ) rntm._SEND_(_OPCDs_[ 0 ], pyld );
+    }
 
-    }
-    public static T Request < T >( string cmd  ) 
+    public static void Send     ( NetworkStream strm, string pyld ) 
     {
-        return default!;
+        if ( _RNTM_ is Server_RUNTIME rntm ) rntm._SEND_( strm, pyld );
     }
-    public static ( string _SNDR_, DateTime _TIME_, string _CNTT_ )[] Retreive ( int    idx  ) 
+
+    public static void Fill     ( NetworkStream strm, string pyld )
     {
-        return [];
+        if ( _RNTM_ is Server_RUNTIME rntm ) rntm._FILL_( strm, pyld );
+    }
+    #endregion
+
+    public static void Request ( string pyld )
+    {
+        if ( _RNTM_ is Client_RUNTIME rntm ) rntm._SEND_(_OPCDs_[ 3 ], pyld );
     }
 }

@@ -106,6 +106,8 @@ public partial class MainWindow : Window
 
     private void Invoke( object _, KeyEventArgs inpt )
     {
+        if ( !_APP_.canRUN ) return;
+
         this._LSNR_.Invoke( inpt );
     }
 
@@ -122,7 +124,7 @@ public partial class MainWindow : Window
     /// </summary>
     private void Send  (                                     ) 
     {
-        if ( this.Cycling || string.IsNullOrWhiteSpace( this._CTPG_._INPT_.Text )) return;
+        if ( !_APP_.canRUN || this.Cycling || string.IsNullOrWhiteSpace( this._CTPG_._INPT_.Text )) return;
 
         this.Cycling = true;
 
@@ -142,7 +144,7 @@ public partial class MainWindow : Window
     /// </summary>
     private void Cycle ( object _, ScrollChangedEventArgs __ ) 
     {
-        if ( this.Cycling ) return;
+        if ( !_APP_.canRUN || this.Cycling ) return;
 
         this.Cycling = true;
 

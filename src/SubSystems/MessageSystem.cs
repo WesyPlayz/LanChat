@@ -1,13 +1,14 @@
-﻿/// AUTHOR  : Ryan L Harding
+﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED : 2/17/2026 14:45
+/// UPDATED   : 2/18/2026 15:14
+/// 
+/// REMAINING : FINISHED ( SUBJECT TO UPDATES )
 
 #region GENERAL HEADER
 
 using System.Windows;
 using System.Windows.Controls;
-using LanChat.CoreSystem;
-
+using System.Net.Sockets;
 
 #endregion
 #region LANCHAT HEADER
@@ -26,7 +27,11 @@ public static class Messager
 {
     #region PRIVATE  STATIC FIELDS
 
-    private static Queue < Message > _QUE_ = [];
+    private static Queue < Batch   > _bQUE_ = []               ;
+    private static Queue < Message > _mQUE_ = []               ;
+
+    private static DateTime          _gTIM_ = DateTime.MinValue;
+    private static int               _SIZE_ = -1               ;
 
     #endregion
     #region INTERNAL STATIC PROPERTIES
@@ -37,7 +42,30 @@ public static class Messager
     #endregion
     #region PUBLIC   STATIC COMPUTED
 
-    public static int Count => _QUE_.Count;
+    /// <summary>
+    /// 
+    /// </summary>
+    public static int Count 
+    {
+        get => _mQUE_.Count;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public static int Size  
+    {
+        get
+        {
+            _SIZE_ = -1;
+
+            Bridge.Request( "COUNT" );
+
+            while ( _SIZE_ < 0 ) Thread.Sleep( 16 );
+
+            return _SIZE_;
+        }
+    }
 
     #endregion
     #region PUBLIC   STATIC INITIALIZERS
@@ -46,22 +74,30 @@ public static class Messager
     /// 
     /// </summary>
     /// <param name = "name"></param>
-    public static void Initialize ( string name ) 
+    public static void Initialize ( Bridge.Mode mode, string name ) 
     {
-        DateTime? gtim = Bridge.Time();
+        if ( !Bridge.Active ) return;
 
-        _NAME_ = name                                                          ;
-        _OFST_ = gtim == null ? TimeSpan.Zero : ( DateTime )gtim - DateTime.Now;
+        Bridge.Request( "TIME" );
+
+        while ( _gTIM_ ==  DateTime.MinValue ) Thread.Sleep( 16 );
+
+        _NAME_ = name                 ;
+        _OFST_ = _gTIM_ - DateTime.Now;
+
+        switch ( mode )
+        {
+            case Bridge.Mode.CNT :
+                Bridge.Add( "SND", _SEND_CLIENT_ );
+                Bridge.Add( "NXT", _NEXT_CLIENT_ );
+            break;
+
+            case Bridge.Mode.SRV :
+                Bridge.Add( "SND", _SEND_SERVER_ );
+                Bridge.Add( "REQ", _RQST_SERVER_ );
+            break;
+        }
     }
-
-    #endregion
-    #region PUBLIC   STATIC ACCESSORS
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <returns></returns>
-    public static int Size () => Bridge.Request < int >( "COUNT" );
 
     #endregion
     #region PUBLIC   STATIC COMMUNICATORS
@@ -69,44 +105,22 @@ public static class Messager
     /// <summary>
     /// 
     /// </summary>
+    /// <param name = "idx"></param>
+    public static void Send  ( int    idx  ) 
+    {
+        Bridge.Send( idx.ToString() );
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
     /// <param name = "cntt"></param>
-    public static void    Send  ( string                                            cntt ) 
+    public static void Send  ( string cntt ) 
     {
         Message msg = new ( cntt );
 
-        _QUE_.Enqueue( msg            );
-        Bridge.Send  ( msg.ToString() );
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name = "sMsg"></param>
-    public static void    Read  ( ( string _SNDR_, DateTime _TIME_, string _CNTT_ ) sMsg ) 
-    {
-        _QUE_.Enqueue( new ( sMsg._SNDR_, sMsg._TIME_, sMsg._CNTT_ ) );
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name = "idx"></param>
-    /// <returns></returns>
-    public static Batch   Read  ( int                                               idx  ) 
-    {
-        ( string _SNDR_, DateTime _TIME_, string _CNTT_ )[] sMsgs = Bridge.Retreive( idx );
-
-        if ( sMsgs.Length <= 0 ) return null!;
-
-        Batch btch = new ();
-
-        foreach ( ( string _SNDR_, DateTime _TIME_, string _CNTT_ ) sMsg in sMsgs )
-        {
-            Message msg = new ( sMsg._SNDR_, sMsg._TIME_, sMsg._CNTT_ );
-
-            btch._INCD_( msg );
-        }
-        return btch;
+        _mQUE_.Enqueue( msg            );
+        Bridge.Send   ( msg.ToString() );
     }
 
     #endregion
@@ -116,12 +130,145 @@ public static class Messager
     /// 
     /// </summary>
     /// <returns></returns>
-    public static Message Fetch () => _QUE_.Dequeue();
+    public static Batch   Fetch_Batch            () 
+    {
+        return _bQUE_.Dequeue();
+    }
 
     /// <summary>
     /// 
     /// </summary>
-    public static void    Clear () => _QUE_.Clear();
+    /// <returns></returns>
+    public static Batch   Deferred_Fetch_Batch   () 
+    {
+        while ( _bQUE_.Count <= 0 ) Thread.Sleep( 16 );
+
+        return _bQUE_.Dequeue();
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public static void    Clear_Batches          () 
+    {
+        _bQUE_.Clear();
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    public static Message Fetch_Message          () 
+    {
+        return _mQUE_.Dequeue();
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    public static Message Deferred_Fetch_Message () 
+    {
+        while ( _mQUE_.Count <= 0 ) Thread.Sleep( 16 );
+
+        return _mQUE_.Dequeue();
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public static void    Clear_Messages         () 
+    {
+        _mQUE_.Clear();
+    }
+
+    #endregion
+    #region PRIVATE  STATIC EVENTS
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "elmts"></param>
+    private static void _SEND_CLIENT_ (                     string[] elmts ) 
+    {
+        if ( elmts.Length == 4 )
+        {
+            if ( !DateTime.TryParse( elmts[ 2 ], out DateTime time ) ) return;
+
+            _mQUE_.Enqueue( new ( elmts[ 1 ], time, elmts[ 3 ] ) );
+        }
+        else if ( elmts.Length == 2 )
+        {
+            if      ( DateTime.TryParse( elmts[ 1 ], out DateTime time ) ) _gTIM_ = time;
+            else if ( int.TryParse     ( elmts[ 1 ], out int      size ) ) _SIZE_ = size;
+        }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "elmts"></param>
+    private static void _NEXT_CLIENT_ (                     string[] elmts ) 
+    {
+        Batch btch = new ();
+
+        for ( int idx = 0; idx < elmts.Length; idx += 3 )
+        {
+            if ( !DateTime.TryParse( elmts[ idx + 1 ], out DateTime time ) ) return;
+
+            btch._INCD_( new ( elmts[ idx ], time, elmts[ idx + 2 ] ) );
+        }
+        _bQUE_.Enqueue( btch );
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "strm" ></param>
+    /// <param name = "elmts"></param>
+    private static void _SEND_SERVER_ ( NetworkStream strm, string[] elmts ) 
+    {
+        if ( elmts.Length == 4 )
+        {
+            if ( !DateTime.TryParse( elmts[ 2 ], out DateTime time ) ) return;
+
+            Batch.Include( new ( elmts[ 1 ], time, elmts[ 3 ] ) );
+        }
+        else if ( elmts.Length == 2 )
+        {
+            if ( !int.TryParse( elmts[ 1 ], out int idx ) ) return;
+
+            Batch btch = Batch.Get( idx );
+
+            Bridge.Fill( strm, btch.Size.ToString() );
+
+            Message? cur = btch.First;
+
+            while ( cur != null )
+            {
+                Bridge.Fill( strm, cur.ToString() );
+
+                cur = cur._NEXT_;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "strm" ></param>
+    /// <param name = "elmts"></param>
+    private static void _RQST_SERVER_ ( NetworkStream strm, string[] elmts ) 
+    {
+        if ( elmts.Length != 2 ) return;
+
+        switch ( elmts[ 1 ] )
+        {
+            case    "TIME"  : Bridge.Send( strm, DateTime.Now.ToString() ); break ;
+            case    "COUNT" : Bridge.Send( strm, Batch.Count.ToString()  ); break ;
+            default         :                                               return;
+        }
+    }
 
     #endregion
 }
@@ -205,19 +352,17 @@ public sealed class Message
 /// </summary>
 public sealed class Batch    
 {
-    #region PUBLIC   INSTANCE FIELDS
-
-    public int Size = 1;
-
-    #endregion
     #region PRIVATE  STATIC   FIELDS
 
-    private static List < Batch > _BATCHES_ = [];
+    private static List < Batch > _BATCHES_ = []     ;
 
-    private static int            _bSIZ_    = 25; // The Maximum Size Of Each Batch.
+    private static int            _bSIZ_    = default; // The Maximum Size Of Each Batch.
+    private static int            _sBND_    = 5      ;
 
     #endregion
     #region PUBLIC   INSTANCE PROPERTIES
+
+    public int      Size  { get; private set; } = 1;
 
     public Message? First { get; private set; }
     public Message? Last  { get; private set; }
@@ -240,6 +385,8 @@ public sealed class Batch
     /// <param name = "msg"></param>
     internal Batch ( Message msg = null! ) 
     {
+        if ( msg == null ) this.Size = 0;
+
         this.First = msg;
         this.Last  = msg;
     }
@@ -255,8 +402,13 @@ public sealed class Batch
     public static void Initialize ( 
         ScrollViewer mPnl, 
         StackPanel   msgs, 
-        DataTemplate tMsg 
+        DataTemplate tMsg,
+        int          bSiz
     ) {
+        if ( _BATCHES_.Count > 0 && bSiz > _sBND_ ) return;
+
+        _bSIZ_ = bSiz;
+
         Include         ( new ( "Welcome Ryan!" )                  );
         Renderer.Refresh( true                  , mPnl, msgs, tMsg );
     }
@@ -306,9 +458,25 @@ public sealed class Batch
     /// <returns></returns>
     internal Message? _EXLD_ (             ) 
     {
-        // TODO;
+        Message? msg = null;
 
-        return null;
+        if ( this.Size == 1 )
+        {
+            msg = this.First;
+
+            this.First = null;
+            this.Last  = null;
+        }
+        else if ( this.Size > 1 )
+        {
+            msg                = this.First         ;
+
+            this.First         = this.First!._NEXT_!;
+            this.First!._PREV_ = null               ;
+
+            msg!._NEXT_        = null               ;
+        }
+        return msg;
     }
 
     /// <summary>
@@ -372,9 +540,40 @@ public sealed class Batch
     /// <returns></returns>
     public static Message? Exclude ( int     bIdx           ) 
     {
-        // TODO;
+        if ( bIdx < 0 || bIdx >= _BATCHES_.Count || _BATCHES_[ bIdx ].Size == 0 ) return null;
 
-        return null;
+        Message? msg = _BATCHES_[ bIdx ].First        ;
+            
+        if ( _BATCHES_[ bIdx ].Size == 1 )
+        {
+            _BATCHES_[ bIdx ].First = null;
+            _BATCHES_[ bIdx ].Last  = null;
+
+            _BATCHES_[ bIdx ].Size--;
+        }
+        else
+        {
+            _BATCHES_[ bIdx ].First         = _BATCHES_[ bIdx ].First!._NEXT_;
+            _BATCHES_[ bIdx ].First!._PREV_ = null                           ;
+            msg!._NEXT_                     = null                           ;
+
+            if ( _BATCHES_[ bIdx ].Size == _bSIZ_ )
+            {
+                Message? nMsg = Exclude( bIdx + 1 );
+
+                if ( nMsg == null ) _BATCHES_[ bIdx ].Size--;
+                else
+                {
+                    nMsg._PREV_                    = _BATCHES_[ bIdx ].Last;
+                    _BATCHES_[ bIdx ].Last!._NEXT_ = nMsg                  ;
+                    _BATCHES_[ bIdx ].Last         = nMsg                  ;
+                }
+            }
+            else _BATCHES_[ bIdx ].Size--;
+        }
+        if ( _BATCHES_[ bIdx ].Size == 0 ) _BATCHES_.RemoveAt( bIdx );
+
+        return msg;
     }
 
     /// <summary>
@@ -452,7 +651,7 @@ public sealed class Batch
 /// <summary>
 /// 
 /// </summary>
-public sealed class Renderer 
+public static class Renderer 
 {
     #region PUBLIC   INSTANCE FIELDS
 
@@ -479,11 +678,11 @@ public sealed class Renderer
         StackPanel   msgs, 
         DataTemplate tMsg 
     ) {
-        if ( Messager.Count == 0 || lIDX != Messager.Size() - 1 ) return;
+        if ( Messager.Count == 0 || lIDX != Messager.Size - 1 ) return;
 
         FrameworkElement elmt = ( FrameworkElement )tMsg.LoadContent();
 
-        elmt.DataContext = Messager.Fetch();
+        elmt.DataContext = Messager.Deferred_Fetch_Message();
 
         msgs.Children.Add( elmt );
         mPnl.UpdateLayout(      );
@@ -503,22 +702,27 @@ public sealed class Renderer
         StackPanel   msgs, 
         DataTemplate tMsg 
     ) {
-        if ( !srtu && lIDX >= Messager.Size() - 1 ) return false;
+        if ( !srtu && lIDX >= Messager.Size - 1 ) return false;
 
-        msgs.Children.Clear();
-        Messager.Clear     ();
+        msgs.Children.Clear    ();
+        Messager.Clear_Messages();
 
-        uIDX = Messager.Size() - 2;
-        lIDX = Messager.Size() - 1;
+        uIDX = Messager.Size - 2;
+        lIDX = Messager.Size - 1;
 
-        _uBTC_ = Messager.Read( uIDX );
-        _lBTC_ = Messager.Read( lIDX );
+        Messager.Send( uIDX );
+
+        _uBTC_ = Messager.Deferred_Fetch_Batch();
+
+        Messager.Send( lIDX );
+
+        _lBTC_ = Messager.Deferred_Fetch_Batch();
 
         if ( _uBTC_ != null )
         {
-            Message cur = _uBTC_.First!;
+            Message? cur = _uBTC_.First;
 
-            for ( int i = 0; i < _uBTC_.Size; i++ )
+            while ( cur != null )
             {
                 FrameworkElement elmt = ( FrameworkElement )tMsg.LoadContent();
 
@@ -527,15 +731,15 @@ public sealed class Renderer
                 msgs.Children.Add( elmt );
                 mPnl.UpdateLayout(      );
 
-                cur = cur._NEXT_!;
+                cur = cur._NEXT_;
             }
             return true;
         }
         if ( _lBTC_ != null )
         {
-            Message cur = _lBTC_.First!;
+            Message? cur = _lBTC_.First;
 
-            for ( int i = 0; i < _lBTC_.Size; i++ )
+            while ( cur != null )
             {
                 FrameworkElement elmt = ( FrameworkElement )tMsg.LoadContent();
 
@@ -544,7 +748,7 @@ public sealed class Renderer
                 msgs.Children.Add( elmt );
                 mPnl.UpdateLayout(      );
 
-                cur = cur._NEXT_!;
+                cur = cur._NEXT_;
             }
             mPnl.ScrollToEnd();
 
@@ -567,7 +771,7 @@ public sealed class Renderer
         int          pdng
     ) {
         if ( 
-            Messager.Size()     == 0    || 
+            Messager.Size       == 0    || 
             _lBTC_              == null || 
             uIDX                <= 0    || 
             mPnl.VerticalOffset >  0 
@@ -579,16 +783,19 @@ public sealed class Renderer
         lIDX = uIDX;
         uIDX--     ;
 
-        _lBTC_ = _uBTC_               ;
-        _uBTC_ = Messager.Read( uIDX );
+        _lBTC_ = _uBTC_;
+
+        Messager.Send( uIDX );
+
+        _uBTC_ = Messager.Deferred_Fetch_Batch();
 
         if ( _uBTC_ == null ) return;
 
-        Message cur = _uBTC_.Last!;
+        Message? cur = _uBTC_.Last;
 
         double height = _uBTC_.Size * pdng;
 
-        for ( int i = 0; i < _uBTC_.Size; i++ )
+        while ( cur != null )
         {
             FrameworkElement elmt = ( FrameworkElement )tMsg.LoadContent();
 
@@ -598,7 +805,7 @@ public sealed class Renderer
             mPnl.UpdateLayout   (         );
 
             height += elmt.ActualHeight;
-            cur     = cur._PREV_!      ;
+            cur     = cur._PREV_       ;
         }
         mPnl.ScrollToVerticalOffset( mPnl.VerticalOffset + height );
     }
@@ -613,14 +820,14 @@ public sealed class Renderer
     public static void Render_Downward ( 
         ScrollViewer mPnl, 
         StackPanel   msgs, 
-        DataTemplate tMsg  ,
+        DataTemplate tMsg,
         int          pdng
     ) {
         if (
-            Messager.Size()     == 0                    ||
-            _uBTC_              == null                 ||
-            lIDX                >= Messager.Size() - 1  ||
-            mPnl.VerticalOffset < mPnl.ScrollableHeight 
+            Messager.Size       == 0                     ||
+            _uBTC_              == null                  ||
+            lIDX                >= Messager.Size - 1     ||
+            mPnl.VerticalOffset <  mPnl.ScrollableHeight 
         ) return;
 
         double height = _uBTC_.Size * pdng;
@@ -636,14 +843,17 @@ public sealed class Renderer
         uIDX = lIDX;
         lIDX++     ;
 
-        _uBTC_ = _lBTC_               ;
-        _lBTC_ = Messager.Read( lIDX );
+        _uBTC_ = _lBTC_;
+
+        Messager.Send( lIDX );
+
+        _lBTC_ = Messager.Deferred_Fetch_Batch();
 
         if ( _lBTC_ == null ) return;
 
-        Message cur = _lBTC_.First!;
+        Message? cur = _lBTC_.First;
 
-        for ( int i = 0; i < _lBTC_.Size; i++ )
+        while ( cur != null )
         {
             FrameworkElement elmt = ( FrameworkElement )tMsg.LoadContent();
 
@@ -652,7 +862,7 @@ public sealed class Renderer
             msgs.Children.Add( elmt );
             mPnl.UpdateLayout(      );
 
-            cur = cur._NEXT_!;
+            cur = cur._NEXT_;
         }
         mPnl.ScrollToVerticalOffset( mPnl.VerticalOffset - height );
     }

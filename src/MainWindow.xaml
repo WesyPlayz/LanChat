@@ -229,17 +229,17 @@
                         >
                             <ToggleButton.Template>
                                 <ControlTemplate TargetType = "ToggleButton">
-                                    <Image x:Name = "Icon" Source = "/Images/Fullscreen.png"/>
+                                    <Image x:Name = "Icon" Source = "/Assets/Images/Fullscreen.png"/>
 
                                     <ControlTemplate.Triggers>
                                         <Trigger Property = "IsMouseOver" Value = "True">
                                             <Setter TargetName = "Icon" Property = "Opacity" Value = "0.5"/>
                                         </Trigger>
                                         <Trigger Property = "IsChecked" Value = "False">
-                                            <Setter TargetName = "Icon" Property = "Source" Value = "/Images/Fullscreen.png"/>
+                                            <Setter TargetName = "Icon" Property = "Source" Value = "/Assets/Images/Fullscreen.png"/>
                                         </Trigger>
                                         <Trigger Property = "IsChecked" Value = "True">
-                                            <Setter TargetName = "Icon" Property = "Source" Value = "/Images/Windowed.png"/>
+                                            <Setter TargetName = "Icon" Property = "Source" Value = "/Assets/Images/Windowed.png"/>
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>

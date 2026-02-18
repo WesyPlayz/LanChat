@@ -7,6 +7,7 @@ using System.Windows;
 
 using LanChat.NetworkSystem;
 using LanChat.MessageSystem;
+using System.Runtime.InteropServices;
 
 #endregion
 
@@ -37,9 +38,13 @@ public partial class App : Application
     #endregion
     #region PRIVATE   STATIC   PROPERTIES
 
-    private static Bridge? _BRDG_ = null;
+    public bool canRUN = false;
 
     #endregion
+
+    [DllImport("kernel32.dll")]
+    static extern bool AllocConsole();
+
 
     // CONSTRUCTORS //
 
@@ -73,6 +78,8 @@ public partial class App : Application
 
         win?.Close();
 
+        AllocConsole();
+
         this.InitWindow = new ( this );
 
         this.InitWindow.Show();
@@ -94,6 +101,8 @@ public partial class App : Application
         this.TermWindow.Show();
 
         Bridge.Initialize( Bridge.Mode.SRV );
+        Bridge.Start(); // TEMP
+        Messager.Initialize( Bridge.Mode.SRV, "SERVER" );
     }
 
     /// <summary>
@@ -112,6 +121,9 @@ public partial class App : Application
         this.MainWindow.Show();
 
         Bridge.Initialize( ext == Extention.NIL ? Bridge.Mode.CNT : Bridge.Mode.SRV );
+        Bridge.Start(); // TEMP
+        Messager.Initialize( Bridge.Mode.CNT, "Ryan" );
+        canRUN = Bridge.Connect( 0 ); // TEMP
     }
 
     /// <summary>
