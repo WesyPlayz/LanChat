@@ -1,0 +1,32 @@
+﻿<Window 
+        x:Class            = "LanChat.Runtime.TermWindow"
+    
+        xmlns              = "http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x            = "http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d            = "http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc           = "http://schemas.openxmlformats.org/markup-compatibility/2006"
+    
+        xmlns:local        = "clr-namespace:LanChat.Runtime"
+        mc:Ignorable       = "d"
+        
+        Title              = "LanChat Terminal" 
+        
+        WindowStyle        = "None"
+        ResizeMode         = "CanResizeWithGrip"
+
+        Height             = "500" 
+        Width              = "900"
+
+        MinHeight          = "500"
+        MinWidth           = "900"
+
+        BorderBrush        = "#3f3f3f"
+        BorderThickness    = "1"
+
+        AllowsTransparency = "True"
+        Background         = "Transparent"
+>
+    <Grid>
+        
+    </Grid>
+</Window>

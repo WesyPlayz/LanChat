@@ -42,3 +42,7 @@ C:\Users\owner\Documents\GitHub\LanChat\src\obj\Debug\net9.0-windows\refint\Proj
 C:\Users\owner\Documents\GitHub\LanChat\src\obj\Debug\net9.0-windows\Project.pdb
 C:\Users\owner\Documents\GitHub\LanChat\src\obj\Debug\net9.0-windows\Project.genruntimeconfig.cache
 C:\Users\owner\Documents\GitHub\LanChat\src\obj\Debug\net9.0-windows\ref\Project.dll
+C:\Users\owner\Documents\GitHub\LanChat\src\obj\Debug\net9.0-windows\InitWindow.g.cs
+C:\Users\owner\Documents\GitHub\LanChat\src\obj\Debug\net9.0-windows\InitWindow.baml
+C:\Users\owner\Documents\GitHub\LanChat\src\obj\Debug\net9.0-windows\TermWindow.g.cs
+C:\Users\owner\Documents\GitHub\LanChat\src\obj\Debug\net9.0-windows\TermWindow.baml
