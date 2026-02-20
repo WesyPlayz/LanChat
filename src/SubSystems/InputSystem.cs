@@ -5,11 +5,10 @@
 #region GENERAL HEADER
 
 using System.Windows.Input;
-using static LanChat.InputSystem.Listener;
 
 #endregion
 
-namespace LanChat.InputSystem;
+namespace LanChat.SubSystem.Input;
 
 /// <summary>
 /// 

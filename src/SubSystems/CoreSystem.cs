@@ -2,7 +2,7 @@
 ///
 /// UPDATED : 2/17/2026 17:08
 
-namespace LanChat.CoreSystem;
+namespace LanChat.SubSystem.Core;
 
 /// <summary>
 /// 

@@ -1,13 +1,16 @@
 ﻿#region GENERAL HEADER
 
+using System.Runtime.InteropServices;
+
 using System.Windows;
+using System.Windows.Controls;
 
 #endregion
 #region LANCHAT HEADER
 
-using LanChat.NetworkSystem;
-using LanChat.MessageSystem;
-using System.Runtime.InteropServices;
+using LanChat.SubSystem.Network;
+using LanChat.SubSystem.Messaging;
+using LanChat.SubSystem.UserInterface;
 
 #endregion
 
@@ -52,7 +55,13 @@ public partial class App : Application
     /// Description :
     ///     Initializes a new application filling it's Initialization Window and Terminal Window with null.
     /// </summary>
-    private App () : base () { this.InitWindow = null!; this.TermWindow = null!; }
+    private App () : base () 
+    { 
+        this.InitWindow = null!; 
+        this.TermWindow = null!;
+
+        Prefabs.Initialize();
+    }
 
     // FUNCTIONS //
 
@@ -121,9 +130,9 @@ public partial class App : Application
         this.MainWindow.Show();
 
         Bridge.Initialize( ext == Extention.NIL ? Bridge.Mode.CNT : Bridge.Mode.SRV );
-        Bridge.Start(); // TEMP
-        Messager.Initialize( Bridge.Mode.CNT, "Ryan" );
-        canRUN = Bridge.Connect( 0 ); // TEMP
+        Bridge.Start     (                                                          );
+        //Messager.Initialize( Bridge.Mode.CNT, "Ryan" );
+        //canRUN = Bridge.Connect( 0 ); // TEMP
     }
 
     /// <summary>
@@ -146,6 +155,49 @@ public partial class App : Application
     #endregion
     #region INTERNAL  INSTANCE BRIDGE  MANAGEMENT
 
+    /*
+    internal Server   _DCVR_  ()
+    {
+
+    }
+    */
+    internal void _SERVs_(ScrollViewer scrl, StackPanel srvs, DataTemplate serv)
+    {
+        Console.WriteLine("E");
+        Task.Run(async () =>
+        {
+            Console.WriteLine("E");
+            while (true)
+            {
+                Console.WriteLine("E");
+                Server[]? cServs = Bridge.Get_Servers();
+
+                // Marshal UI work to the dispatcher
+                srvs.Dispatcher.Invoke(() =>
+                {
+                    Console.WriteLine("E");
+                    srvs.Children.Clear();
+
+                    if (cServs != null)
+                    {
+                        Console.WriteLine("E");
+                        foreach (Server iServ in cServs)
+                        {
+                            Console.WriteLine(iServ.ToString());
+                            FrameworkElement s = (FrameworkElement)serv.LoadContent();
+
+                            s.DataContext = iServ;
+
+                            srvs.Children.Add(s);
+                            scrl.UpdateLayout();
+                        }
+                    }
+                });
+
+                await Task.Delay(5000);
+            }
+        });
+    }
 
 
     #endregion

@@ -53,3 +53,6 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~M:LanChat.MessageSystem.Messager._NEXT_CLIENT_(System.String[])")]
 [assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~M:LanChat.MessageSystem.Messager._SEND_SERVER_(System.Net.Sockets.NetworkStream,System.String[])")]
 [assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~M:LanChat.MessageSystem.Messager._RQST_SERVER_(System.Net.Sockets.NetworkStream,System.String[])")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~M:LanChat.Runtime.MainWindow._lINIT_")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~M:LanChat.Runtime.MainWindow._cINIT_")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "type", Target = "~T:LanChat.SubSystem.UserInterface.uiPage")]
