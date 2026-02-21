@@ -1,0 +1,159 @@
+﻿<!-- AUTHOR  : Ryan L Harding  -->
+<!--                           -->
+<!-- UPDATED : 2/17/2026 14:28 -->
+
+<Window 
+    x:Class            = "LanChat.Runtime.InitWindow"
+    
+    xmlns              = "http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x            = "http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d            = "http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc           = "http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:local        = "clr-namespace:LanChat.Runtime"
+    mc:Ignorable       = "d"
+        
+    Title              = "LanChat Initializer" 
+        
+    MaxHeight          = "500" 
+    MaxWidth           = "450"
+    
+    MinHeight          = "500"
+    MinWidth           = "450"
+>
+    <Grid x:Name = "Screen_Space">
+        <Grid.RowDefinitions>
+            <RowDefinition Height = "5"  />
+            <RowDefinition Height = "30" />
+            <RowDefinition Height = "100" />
+            <RowDefinition Height = "100"/>
+            <RowDefinition Height = "260"/>
+            <RowDefinition Height = "5"  />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width = "5" />
+            <ColumnDefinition Width = "10"/>
+            <ColumnDefinition Width = "*" />
+            <ColumnDefinition Width = "10"/>
+            <ColumnDefinition Width = "5" />
+        </Grid.ColumnDefinitions>
+
+        <Grid
+            Grid.Row    = "3"
+            Grid.Column = "2"
+        >
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width = "auto"/>
+                <ColumnDefinition Width = "auto"/>
+                <ColumnDefinition Width = "auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Button 
+                Click           = "Client"     
+                MouseEnter      = "Client_HVR"     
+    
+                Grid.Column     = "0" 
+    
+                Width           = "80" 
+
+                BorderThickness = "0"
+                Background      = "Transparent"
+    
+                Margin          = "30 10"
+            >
+                <Button.Template>
+                    <ControlTemplate TargetType = "Button">
+                        <Image x:Name = "Icon" Source = "/Assets/Images/Client.png"/>
+                        
+                        <ControlTemplate.Triggers>
+                            <Trigger Property = "IsMouseOver" Value = "True">
+                                <Setter TargetName = "Icon" Property = "Source" Value = "/Assets/Images/Client_HVR.png"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button> <!-- CLIENT     BUTTON -->
+            <Button 
+                Click           = "Local_Host"     
+                MouseEnter      = "Local_Host_HVR"     
+    
+                Grid.Column     = "1" 
+    
+                Width           = "80" 
+
+                BorderThickness = "0"
+                Background      = "Transparent"
+    
+                Margin          = "30 10"
+            >
+                <Button.Template>
+                    <ControlTemplate TargetType = "Button">
+                        <Image x:Name = "Icon" Source = "/Assets/Images/Local_Host.png"/>
+                        
+                        <ControlTemplate.Triggers>
+                            <Trigger Property = "IsMouseOver" Value = "True">
+                                <Setter TargetName = "Icon" Property = "Source" Value = "/Assets/Images/Local_Host_HVR.png"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button> <!-- LOCAL HOST BUTTON -->
+            <Button 
+                Click           = "Server"     
+                MouseEnter      = "Server_HVR"     
+                
+                Grid.Column     = "2" 
+                
+                Width           = "80" 
+
+                BorderThickness = "0"
+                Background      = "Transparent"
+                
+                Margin          = "30 10"
+            >
+                <Button.Template>
+                    <ControlTemplate TargetType = "Button">
+                        <Image x:Name = "Icon" Source = "/Assets/Images/Server.png"/>
+                        
+                        <ControlTemplate.Triggers>
+                            <Trigger Property = "IsMouseOver" Value = "True">
+                                <Setter TargetName = "Icon" Property = "Source" Value = "/Assets/Images/Server_HVR.png"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button> <!-- SERVER     BUTTON -->
+        </Grid>
+
+        <TextBlock
+            Grid.Row            = "2"
+            Grid.Column         = "2"
+    
+            Text                = "Pick a process to run LanChat on."
+    
+            FontSize            = "25"
+    
+            Foreground          = "#dfdfdf"
+            
+            VerticalAlignment   = "Center"
+            HorizontalAlignment = "Center"
+    
+            TextWrapping        = "Wrap"
+            Margin              = "25"
+        /> <!-- INSTRUCTION TEXT -->
+        <TextBlock
+            x:Name       = "Description"
+            
+            Grid.Row     = "4"
+            Grid.Column  = "2"
+            
+            Text         = "{Binding}"
+            
+            FontSize     = "15"
+            
+            Foreground   = "#dfdfdf"
+            
+            TextWrapping = "Wrap"
+            Margin       = "25"
+        /> <!-- DESCRIPTION TEXT -->
+    </Grid>
+</Window>

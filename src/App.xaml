@@ -5,7 +5,4 @@
     xmlns:local  = "clr-namespace:LanChat.Runtime"
     ShutdownMode = "OnExplicitShutdown"
 >
-    <Application.Resources>
-
-    </Application.Resources>
 </Application>
