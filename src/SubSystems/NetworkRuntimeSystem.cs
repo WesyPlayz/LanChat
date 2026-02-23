@@ -1,6 +1,6 @@
 ﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED   : 2/23/2026 01:23
+/// UPDATED   : 2/23/2026 14:52
 /// 
 /// REMAINING : FINISHED ( SUBJECT TO UPDATE )
 
@@ -25,6 +25,11 @@ namespace LanChat.SubSystem.Network.Runtime;
 /// </summary>
 internal abstract class rtEntity 
 {
+    #region INTERNAL INSTANCE FIELDS
+
+    internal List< iEntity > _ETTYs_ = [];
+
+    #endregion
     #region PROTECTED INSTANCE FIELDS
 
     protected UdpClient? _DTGM_ = null         ;
@@ -58,11 +63,6 @@ internal abstract class rtEntity
 /// </summary>
 internal sealed   class rtClient : rtEntity
 {
-    #region INTERNAL INSTANCE FIELDS
-
-    internal List< Server > _SERVs_ = [];
-
-    #endregion
     #region PRIVATE  INSTANCE FIELDS
 
     private List < string > _PSWDs_ = []               ;
@@ -157,7 +157,7 @@ internal sealed   class rtClient : rtEntity
     {
         Retry rt = new ( 20 );
 
-        if ( !rt.Attempt( () => this._SERVs_.Count > 0 ) || this._SERVs_[ idx ].Equals( this._SERV_ ) ) return false;
+        if ( !rt.Attempt( () => this._ETTYs_.Count > 0 ) || this._ETTYs_[ idx ].Equals( this._SERV_ ) ) return false;
 
         this._SYNC_.Start();
         this._CLNT_ = new();
@@ -166,7 +166,13 @@ internal sealed   class rtClient : rtEntity
 
         try
         {
-            this._SERV_ = this._SERVs_[ idx ];
+            if ( !( this._ETTYs_[ idx ] is Server serv ) )
+            {
+                this._SYNC_.Stop();
+
+                return false;
+            }
+            this._SERV_ = serv;
 
             await this._CLNT_.ConnectAsync( this._SERV_.Ip, this._SERV_.Port );
 
@@ -191,14 +197,16 @@ internal sealed   class rtClient : rtEntity
     /// <param name = "pyld"></param>
     internal      void _SEND_ ( string   cmd  , string pyld ) 
     {
-        while ( this._STRM_ == null ) Thread.Sleep( 16 );
+        Retry rt = new();
+
+        rt.Attempt_Async( () => this._STRM_ != null ).GetAwaiter().GetResult();
 
         if ( cmd == Bridge.FIL && this._sREQ_ != 0 )
         {
             cmd         = Bridge.NXT;
             this._sREQ_--           ;
         }
-        byte[] rqst = Encoding.UTF8.GetBytes( $"{ cmd }{ Serializer.Splitter }{ pyld }{ Serializer.Terminator }" );
+        byte[] rqst = Encoding.UTF8.GetBytes( $"{ cmd }{ Serializer.SPLITTER }{ pyld }{ Serializer.TERMINATOR }" );
 
         this._STRM_.Write( rqst, 0, rqst.Length );
     }
@@ -255,11 +263,11 @@ internal sealed   class rtClient : rtEntity
 
             int rend = default;
 
-            while ( ( rend = rqst.IndexOf( Serializer.Terminator ) ) != -1 )
+            while ( ( rend = rqst.IndexOf( Serializer.TERMINATOR ) ) != -1 )
             {
-                this._INVK_( rqst[ ..rend ].Trim().Split( Serializer.Splitter ) );
+                this._INVK_( rqst[ ..rend ].Trim().Split( Serializer.SPLITTER ) );
 
-                rqst = rqst[ ( rend + Serializer.Terminator.Length ) .. ];
+                rqst = rqst[ ( rend + Serializer.TERMINATOR.Length ) .. ];
             }
         }
         this._SYNC_.Stop();
@@ -295,7 +303,7 @@ internal sealed   class rtClient : rtEntity
             {
                 Server serv = new ( elmts[ 0 ], int.Parse( elmts[ 1 ] ) );
 
-                if ( !this._SERVs_.Contains( serv ) ) this._SERVs_.Add( serv );
+                if ( !this._ETTYs_.Contains( serv ) ) this._ETTYs_.Add( serv );
             }
             this._SYNC_.Stop();
         });
@@ -335,7 +343,7 @@ internal sealed   class rtClient : rtEntity
                     {
                         Server serv = new ( elmts[ 0 ], int.Parse( elmts[ 1 ] ) );
 
-                        if ( !this._SERVs_.Contains( serv ) ) this._SERVs_.Add( serv );
+                        if ( !this._ETTYs_.Contains( serv ) ) this._ETTYs_.Add( serv );
                     }
                 }
                 await Task.Delay( 500 );
@@ -434,9 +442,31 @@ internal sealed   class rtServer : rtEntity
             cmd         = Bridge.NXT;
             this._sREQ_--           ;
         }
-        byte[] rqst = Encoding.UTF8.GetBytes( $"{ cmd }{ Serializer.Splitter }{ pyld }{ Serializer.Terminator }" );
+        byte[] rqst = Encoding.UTF8.GetBytes( $"{ cmd }{ Serializer.SPLITTER }{ pyld }{ Serializer.TERMINATOR }" );
 
         strm.Write( rqst, 0, rqst.Length );
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "cmd"></param>
+    /// <param name = "pyld"></param>
+    internal      void _SEND_ ( string    cmd ,                     string pyld  ) 
+    {
+        if ( cmd == Bridge.FIL && this._sREQ_ != 0 )
+        {
+            cmd         = Bridge.NXT;
+            this._sREQ_--           ;
+        }
+        byte[] rqst = Encoding.UTF8.GetBytes( $"{ cmd }{ Serializer.SPLITTER }{ pyld }{ Serializer.TERMINATOR }" );
+
+        foreach ( iEntity etty in this._ETTYs_ )
+        {
+            if ( !( etty is Client clnt ) ) continue;
+
+            clnt._STRM_.Write( rqst, 0, rqst.Length );
+        }
     }
 
     /// <summary>
@@ -495,11 +525,11 @@ internal sealed   class rtServer : rtEntity
 
             int rend = default;
 
-            while ( ( rend = rqst.IndexOf( Serializer.Terminator ) ) != -1 )
+            while ( ( rend = rqst.IndexOf( Serializer.TERMINATOR ) ) != -1 )
             {
-                this._INVK_( clnt, rqst[ .. rend ].Trim().Split( Serializer.Splitter ) );
+                this._INVK_( clnt, rqst[ .. rend ].Trim().Split( Serializer.SPLITTER ) );
 
-                rqst = rqst[ ( rend + Serializer.Terminator.Length ) .. ];
+                rqst = rqst[ ( rend + Serializer.TERMINATOR.Length ) .. ];
             }
         }
         clnt._ACTV_ = false;

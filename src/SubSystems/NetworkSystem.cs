@@ -1,8 +1,11 @@
 ﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED   : 2/23/2026 1:25
+/// UPDATED   : 2/23/2026 14:55
 ///
-/// REMAINING : ALL ( SUBJECT TO FILL )
+/// REMAINING :
+///     Client   CLASS
+///     Server   CLASS
+///     Renderer CLASS
 
 #region GENERAL HEADER
 
@@ -19,7 +22,7 @@ namespace LanChat.SubSystem.Network;
 
 public interface iEntity;
 
-public sealed class Client : iEntity
+public sealed class Client   : iEntity
 {
     #region INTERNAL PROPERTIES
 
@@ -150,7 +153,7 @@ public sealed class Client : iEntity
     */
 }
 
-public sealed class Server ( string ip, int port ) : iEntity
+public sealed class Server   ( string ip, int port ) : iEntity
 {
     public string Name { get; private set; } = "Server";
     public string Ip   { get; private set; } = ip      ;
@@ -165,7 +168,7 @@ public sealed class Server ( string ip, int port ) : iEntity
 /// <summary>
 /// 
 /// </summary>
-public sealed class Bridge 
+public sealed class Bridge   
 {
     #region PUBLIC   ENUMS
 
@@ -256,10 +259,9 @@ public sealed class Bridge
     /// <returns></returns>
     public static iEntity[]? Get () 
     {
-        if      ( _RNTM_ is rtClient clnt ) return [ .. clnt._SERVs_ ];
-        else if ( _RNTM_ is rtServer serv ) return [ .. serv._CLNTs_ ];
-        
-        return null;
+        if ( _RNTM_ == null ) return null;
+
+        return [ .. _RNTM_._ETTYs_ ];
     }
 
     #endregion
@@ -296,7 +298,7 @@ public sealed class Bridge
     /// 
     /// </summary>
     /// <param name = "pyld"></param>
-    public static void Send    (              string pyld ) 
+    public static void Send        (              string pyld ) 
     {
         if ( _RNTM_ is rtClient clnt ) clnt._SEND_( SND, pyld );
     }
@@ -306,7 +308,7 @@ public sealed class Bridge
     /// </summary>
     /// <param name = "clnt"></param>
     /// <param name = "pyld"></param>
-    public static void Send    ( Client clnt, string pyld ) 
+    public static void Send        ( Client clnt, string pyld ) 
     {
         if ( _RNTM_ is rtServer serv ) serv._SEND_( SND, clnt._STRM_, pyld );
     }
@@ -315,7 +317,16 @@ public sealed class Bridge
     /// 
     /// </summary>
     /// <param name = "pyld"></param>
-    public static void Fill    (              string pyld ) 
+    public static void Send_All    (              string pyld ) 
+    {
+        if ( _RNTM_ is rtServer serv ) serv._SEND_( Bridge.SND, pyld );
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "pyld"></param>
+    public static void Fill        (              string pyld ) 
     {
         if ( _RNTM_ is rtClient clnt ) clnt._SEND_( FIL, pyld );
     }
@@ -325,7 +336,7 @@ public sealed class Bridge
     /// </summary>
     /// <param name = "clnt"></param>
     /// <param name = "pyld"></param>
-    public static void Fill    ( Client clnt, string pyld ) 
+    public static void Fill        ( Client clnt, string pyld ) 
     {
         if ( _RNTM_ is rtServer serv ) serv._SEND_( FIL, clnt._STRM_, pyld );
     }
@@ -334,7 +345,16 @@ public sealed class Bridge
     /// 
     /// </summary>
     /// <param name = "pyld"></param>
-    public static void Request (              string pyld ) 
+    public static void Fill_All    (              string pyld ) 
+    {
+        if ( _RNTM_ is rtServer serv ) serv._SEND_( Bridge.FIL, pyld );
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "pyld"></param>
+    public static void Request     (              string pyld ) 
     {
         if ( _RNTM_ is rtClient clnt ) clnt._SEND_( REQ, pyld );
     }
@@ -344,9 +364,18 @@ public sealed class Bridge
     /// </summary>
     /// <param name = "clnt"></param>
     /// <param name = "pyld"></param>
-    public static void Request ( Client clnt, string pyld ) 
+    public static void Request     ( Client clnt, string pyld ) 
     {
         if ( _RNTM_ is rtServer serv ) serv._SEND_( REQ, clnt._STRM_, pyld );
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "pyld"></param>
+    public static void Request_All (              string pyld )
+    {
+        if ( _RNTM_ is rtServer serv ) serv._SEND_( Bridge.REQ, pyld );
     }
 
     #endregion
@@ -377,7 +406,7 @@ public sealed class Bridge
     #endregion
 }
 
-public sealed class Renderer
+public sealed class Renderer 
 {
 
 }

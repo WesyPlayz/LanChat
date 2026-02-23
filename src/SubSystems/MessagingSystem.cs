@@ -330,7 +330,7 @@ public sealed class Message
     /// </summary>
     /// <returns></returns>
     public override string ToString() => (
-        $"{ this.Sender } { Serializer.Splitter } { this.Time } { Serializer.Splitter } { this.Content }"
+        $"{ this.Sender } { Serializer.SPLITTER } { this.Time } { Serializer.SPLITTER } { this.Content }"
     );
 
     #endregion
@@ -639,17 +639,11 @@ public static class Renderer
 {
     #region PRIVATE  INSTANCE FIELDS
 
-    private static int    _uPRV_ = -1     ; // The Previous Upper Renderable Batch Index.
-    private static int    _lPRV_ =  0     ; // The Previous Lower Renderable Batch Index.
-
     private static int    _uIDX_ = -1     ; // The Upper Renderable Batch Index.
     private static int    _lIDX_ =  0     ; // The Lower Renderable Batch Index.
 
     private static Batch? _uBTC_ = null!  ; // The Upper Renderable Batch Object.
     private static Batch? _lBTC_ = null!  ; // The Lower Renderable Batch Object.
-
-    private static bool   _RFSH_ = false  ;
-    private static int    _LOAD_ = default;
 
     #endregion
 
@@ -668,6 +662,7 @@ public static class Renderer
     ) {
         Messager.Bind( Batch   );
         Messager.Bind( Message );
+        Messager.Bind( Count   );
 
         Refresh( mPnl, msgs, tMsg );
     }
@@ -684,13 +679,11 @@ public static class Renderer
     {
         if      ( idx == _uIDX_ ) 
         {
-            _uBTC_ = btch  ;
-            _uPRV_ = _uIDX_;
+            _uBTC_ = btch;
         }
         else if ( idx == _lIDX_ )
         {
             _lBTC_ = btch;
-            _lPRV_ = _lIDX_;
         }
     }
 
@@ -698,7 +691,16 @@ public static class Renderer
     /// 
     /// </summary>
     /// <param name = "msg"></param>
-    private static void Message ( Message msg             )
+    private static void Message ( Message msg             ) 
+    {
+
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "cnt"></param>
+    private static void Count   ( int     cnt             )
     {
 
     }
