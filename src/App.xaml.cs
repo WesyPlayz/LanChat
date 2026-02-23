@@ -1,4 +1,10 @@
-﻿#region GENERAL HEADER
+﻿/// AUTHOR    : Ryan L Harding
+///
+/// UPDATED   : 2/23/2026 1:30
+///
+/// REMAINING : ALL ( SUBJECT TO FILL )
+
+#region GENERAL HEADER
 
 using System.Runtime.InteropServices;
 

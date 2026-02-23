@@ -1,4 +1,10 @@
-﻿#region GENERAL HEADER
+﻿/// AUTHOR    : Ryan L Harding
+///
+/// UPDATED   : 2/23/2026 01:23
+/// 
+/// REMAINING : FINISHED ( SUBJECT TO UPDATE )
+
+#region GENERAL HEADER
 
 using System.Net;
 using System.Net.Sockets;
@@ -50,7 +56,7 @@ internal abstract class rtEntity
 /// <summary>
 /// 
 /// </summary>
-internal sealed class rtClient   : rtEntity
+internal sealed   class rtClient : rtEntity
 {
     #region INTERNAL INSTANCE FIELDS
 
@@ -135,7 +141,7 @@ internal sealed class rtClient   : rtEntity
     /// 
     /// </summary>
     /// <param name = "pswd"></param>
-    internal void _STRT_ ( string pswd ) 
+    internal       void         _STRT_ ( string pswd ) 
     {
         if ( !this._SYNC_.Idle || this._DTGM_ != null ) return;
 
@@ -344,7 +350,7 @@ internal sealed class rtClient   : rtEntity
 /// <summary>
 /// 
 /// </summary>
-internal sealed class rtServer   : rtEntity
+internal sealed   class rtServer : rtEntity
 {
     #region INTERNAL INSTANCE FIELDS
 

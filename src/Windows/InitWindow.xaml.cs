@@ -1,6 +1,8 @@
-﻿/// AUTHOR  : Ryan L Harding
+﻿/// AUTHOR    : Ryan L Harding
 /// 
-/// UPDATED : 2/17/2026 14:29
+/// UPDATED   : 2/22/2026 23:48
+/// 
+/// REMAINING : FINISHED ( SUBJECT TO UPDATES )
 
 #region GENERAL HEADER
 

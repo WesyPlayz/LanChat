@@ -1,6 +1,8 @@
-﻿/// AUTHOR  : Ryan L Harding
+﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED : 2/20/2026 20:56
+/// UPDATED   : 2/22/2026 23:45
+/// 
+/// REMAINING : FINISHED ( SUBJECT TO UPDATES )
 
 #region GENERAL HEADER
 
@@ -20,7 +22,7 @@ namespace LanChat.SubSystem.UserInterface;
 /// <summary>
 /// 
 /// </summary>
-public static class Prefabs    
+public static class     Prefabs    
 {
     #region PRIVAATE STATIC PROPERTIES
 
@@ -135,7 +137,7 @@ public static class Prefabs
 /// <summary>
 /// 
 /// </summary>
-public interface uiPage {}
+public        interface uiPage {}
 
 /// <summary>
 /// 
@@ -143,7 +145,7 @@ public interface uiPage {}
 /// <param name = "inpt"></param>
 /// <param name = "scrl"></param>
 /// <param name = "srvs"></param>
-public sealed class Login_Page (
+public sealed class     Login_Page (
     TextBox      inpt = null!,
     ScrollViewer scrl = null!,
     StackPanel   srvs = null!
@@ -171,7 +173,7 @@ public sealed class Login_Page (
 /// <param name = "msgs"></param>
 /// <param name = "actv"></param>
 /// <param name = "inac"></param>
-public sealed class Chat_Page  (
+public sealed class     Chat_Page  (
     TextBox      inpt = null!,
     ScrollViewer scrl = null!,
     StackPanel   msgs = null!,

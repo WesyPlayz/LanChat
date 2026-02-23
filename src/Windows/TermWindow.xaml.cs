@@ -1,4 +1,10 @@
-﻿using System.Windows;
+﻿/// AUTHOR    : Ryan L Harding
+///
+/// UPDATED   : 2/23/2026 1:30
+///
+/// REMAINING : ALL ( SUBJECT TO FILL )
+
+using System.Windows;
 
 namespace LanChat.Runtime;
 

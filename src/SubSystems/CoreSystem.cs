@@ -1,6 +1,8 @@
-﻿/// AUTHOR  : Ryan L Harding
+﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED : 2/17/2026 17:08
+/// UPDATED   : 2/23/2026 01:19
+/// 
+/// REMAINING : PARTIAL ( SUBJECT TO FILL )
 
 namespace LanChat.SubSystem.Core;
 
@@ -20,6 +22,7 @@ public struct Sync  ( uint proc = 0 )
     }
 
     #endregion
+
     #region PRIVATE INSTANCE FIELDS
 
     private Status State = Status.IDL;
@@ -30,6 +33,7 @@ public struct Sync  ( uint proc = 0 )
     public uint Processes { get; private set; } = proc;
 
     #endregion
+
     #region PUBLIC  INSTANCE COMPUTED
 
     /// <summary>
@@ -43,6 +47,7 @@ public struct Sync  ( uint proc = 0 )
     public readonly bool Continue => this.State == Status.RUN;
 
     #endregion
+
     #region PUBLIC  INSTANCE FUNCTIONS
 
     /// <summary>

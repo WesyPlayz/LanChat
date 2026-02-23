@@ -1,6 +1,11 @@
-﻿/// AUTHOR  : Ryan L Harding
+﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED : 2/20/2026 21:07
+/// UPDATED   : 2/22/2026 23:52
+/// 
+/// REMAINING :
+///     Discover()
+///     Connect ()
+///     Login   ()
 
 #region GENERAL HEADER
 
@@ -297,6 +302,7 @@ public partial class MainWindow : Window
             ( Key.Tab  , [ this.Tab  ] )
         ]);
     }
+    // ^ TEMP INTERNAL
 
     #endregion
     #region PRIVATE  INSTANCE TRANSFORMERS
@@ -352,6 +358,8 @@ public partial class MainWindow : Window
         this._LSNR_.Invoke( inpt );
     }
 
+    // TEXT BOX EVENTS //
+
     /// <summary>
     /// 
     /// </summary>
@@ -369,9 +377,9 @@ public partial class MainWindow : Window
     /// <summary>
     /// 
     /// </summary>
-    private void Send     ( object _, RoutedEventArgs        __   ) 
+    private void Discover (                                       ) 
     {
-        this.Send();
+        // TODO;
     }
 
     /// <summary>
@@ -386,13 +394,15 @@ public partial class MainWindow : Window
             Messager.Send   ( ctpg.Input.Text );
             ctpg.Input.Clear(                 );
 
-            if ( !Renderer.Refresh( false, ctpg.Scroll_Space, ctpg.Messages, Chat_Page.Message ) )
+            if ( !Renderer.Refresh( ctpg.Scroll_Space, ctpg.Messages, Chat_Page.Message ) )
             {
                 Renderer.Render_Next( ctpg.Scroll_Space, ctpg.Messages, Chat_Page.Message );
             }
             this._CYCL_ = false;
         }
     }
+
+    // BUTTON EVENTS //
 
     /// <summary>
     /// 
@@ -405,10 +415,28 @@ public partial class MainWindow : Window
     /// <summary>
     /// 
     /// </summary>
-    private void Discover (                                       ) 
+    private void Connect  ( object _, RoutedEventArgs        __   ) 
     {
         // TODO;
     }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    private void Login    ( object _, RoutedEventArgs        __   ) 
+    {
+        // TODO;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    private void Send     ( object _, RoutedEventArgs        __   ) 
+    {
+        this.Send();
+    }
+
+    // SCROLL EVENTS //
 
     /// <summary>
     /// 
