@@ -1,13 +1,15 @@
-﻿/// AUTHOR : Ryan L Harding
+﻿/// AUTHOR  : Ryan L Harding
 ///
-///
+/// UPDATED : 2/20/2026 20:56
 
 #region GENERAL HEADER
 
 using System.Collections;
+
+using System.IO;
+
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
 
@@ -27,6 +29,8 @@ public static class Prefabs
     private static Dictionary< string, DataTemplate    > _TEMPs_ = [];
     private static Dictionary< string, Effect          > _EFCTs_ = [];
 
+    private static string                                _URI_   = "/Assets/Prefabs.xaml";
+
     private static bool                                  _FILD_  = false;
 
     #endregion
@@ -41,9 +45,25 @@ public static class Prefabs
 
         _FILD_ = true;
 
+        string path = Path.Combine( AppDomain.CurrentDomain.BaseDirectory, "Assets", "Prefabs.xaml" );
+
+        if ( !File.Exists( path ) ) 
+        { 
+            Directory.CreateDirectory( Path.GetDirectoryName( path )! ); 
+            File.WriteAllText(
+                path, 
+                """
+                    <ResourceDictionary 
+                        xmlns   = "http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
+                        xmlns:x = "http://schemas.microsoft.com/winfx/2006/xaml"
+                    > 
+                    </ResourceDictionary> 
+                """
+            ); 
+        }
         ResourceDictionary rsrcs = new ()
         {
-            Source = new Uri ( "/Assets/Prefabs.xaml", UriKind.Relative )
+            Source = new Uri ( _URI_, UriKind.Relative )
         };
         foreach ( DictionaryEntry etry in rsrcs )
         {
@@ -129,9 +149,18 @@ public sealed class Login_Page (
     StackPanel   srvs = null!
 
 ) : uiPage {
+    #region PUBLIC INSTANCE FIELDS
+
     public TextBox      Input        = inpt;
     public ScrollViewer Scroll_Space = scrl;
     public StackPanel   Servers      = srvs;
+
+    #endregion
+    #region PUBLIC STATIC   FIELDS
+
+    public static DataTemplate Server = null!;
+
+    #endregion
 }
 
 /// <summary>
@@ -149,9 +178,18 @@ public sealed class Chat_Page  (
     StackPanel   actv = null!,
     StackPanel   inac = null!
 ) : uiPage {
+    #region PUBLIC INSTANCE FIELDS
+
     public TextBox      Input            = inpt;
     public ScrollViewer Scroll_Space     = scrl;
     public StackPanel   Messages         = msgs;
     public StackPanel   Active_Clients   = actv;
     public StackPanel   Inactive_Clients = inac;
+
+    #endregion
+    #region PUBLIC STATIC   FIELDS
+
+    public static DataTemplate Message = null!;
+
+    #endregion
 }

@@ -8,6 +8,7 @@ using System.Windows.Controls;
 #endregion
 #region LANCHAT HEADER
 
+using LanChat.SubSystem.Core;
 using LanChat.SubSystem.Network;
 using LanChat.SubSystem.Messaging;
 using LanChat.SubSystem.UserInterface;
@@ -131,8 +132,8 @@ public partial class App : Application
 
         Bridge.Initialize( ext == Extention.NIL ? Bridge.Mode.CNT : Bridge.Mode.SRV );
         Bridge.Start     (                                                          );
-        //Messager.Initialize( Bridge.Mode.CNT, "Ryan" );
-        //canRUN = Bridge.Connect( 0 ); // TEMP
+        if ( Bridge.Connect( 0 ) && this.MainWindow is MainWindow mw ) mw._cINIT_();
+        Messager.Initialize( Bridge.Mode.CNT, "Ryan" );
     }
 
     /// <summary>
@@ -161,26 +162,30 @@ public partial class App : Application
 
     }
     */
-    internal void _SERVs_(ScrollViewer scrl, StackPanel srvs, DataTemplate serv)
+
+    private Sync _SYNC_ = new();
+
+    internal void _SRCH_()
     {
-        Console.WriteLine("E");
+        _SYNC_.Close();
+    }
+
+    internal void _SRCH_(ScrollViewer scrl, StackPanel srvs, DataTemplate serv)
+    {
+        _SYNC_.Start();
+        
         Task.Run(async () =>
         {
-            Console.WriteLine("E");
-            while (true)
+            while ( _SYNC_.Continue )
             {
-                Console.WriteLine("E");
-                Server[]? cServs = Bridge.Get_Servers();
+                iEntity[]? cServs = Bridge.Get();
 
-                // Marshal UI work to the dispatcher
                 srvs.Dispatcher.Invoke(() =>
                 {
-                    Console.WriteLine("E");
                     srvs.Children.Clear();
 
                     if (cServs != null)
                     {
-                        Console.WriteLine("E");
                         foreach (Server iServ in cServs)
                         {
                             Console.WriteLine(iServ.ToString());
@@ -196,6 +201,7 @@ public partial class App : Application
 
                 await Task.Delay(5000);
             }
+            _SYNC_.Stop();
         });
     }
 

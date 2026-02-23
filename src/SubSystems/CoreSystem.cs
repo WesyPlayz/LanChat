@@ -8,7 +8,7 @@ namespace LanChat.SubSystem.Core;
 /// 
 /// </summary>
 /// <param name = "proc"></param>
-public struct Sync ( uint proc = 0 )
+public struct Sync  ( uint proc = 0 )
 {
     #region PUBLIC  ENUM
 
@@ -71,8 +71,11 @@ public struct Sync ( uint proc = 0 )
     /// </summary>
     public          void Stop  () 
     {
-        if ( this.Processes   == 0 ) return                 ;
-        if ( this.Processes-- == 0 ) this.State = Status.IDL;
+        if ( this.State == Status.IDL ) return;
+
+        this.Processes = Math.Max( 0, this.Processes - 1 );
+
+        if ( this.Processes <= 0 ) this.State = Status.IDL;
     }
 
     /// <summary>
@@ -84,4 +87,52 @@ public struct Sync ( uint proc = 0 )
     }
 
     #endregion
+}
+
+/// <summary>
+/// 
+/// </summary>
+/// <param name = "trys"></param>
+public struct Retry ( uint trys = 0 )
+{
+    private uint _TRYS_ = trys;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "cndt"></param>
+    public       bool          Attempt       ( Func < bool > cndt ) 
+    {
+        uint cur = this._TRYS_ == 0 ? 1 : this._TRYS_;
+
+        while ( cur > 0 )
+        {
+            if ( cndt() ) return true;
+
+            Thread.Sleep( 16 );
+
+            if ( this._TRYS_ > 0 ) cur--;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "cndt"></param>
+    /// <returns></returns>
+    public async Task < bool > Attempt_Async ( Func < bool > cndt ) 
+    {
+        uint cur = this._TRYS_ == 0 ? 1 : this._TRYS_;
+
+        while ( cur > 0 )
+        {
+            if ( cndt() ) return true;
+
+            await Task.Delay( 1000 ).ConfigureAwait( false );
+
+            if ( this._TRYS_ > 0 ) cur--;
+        }
+        return false;
+    }
 }

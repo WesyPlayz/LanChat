@@ -11,20 +11,25 @@ using LanChat.SubSystem.Network.Runtime;
 
 namespace LanChat.SubSystem.Network;
 
-internal sealed class Client 
+public interface iEntity;
+
+public sealed class Client : iEntity
 {
     #region INTERNAL PROPERTIES
 
     internal TcpClient _CONNECTION_ { get; private set; }
+    internal NetworkStream _STRM_ { get; private set; }
     internal byte[]        bffr = new byte[ 1024 ] ;
-    internal uint id = 0;
+    internal bool _ACTV_ = false;
 
     #endregion
 
-    internal Client ( uint ID,  TcpClient connection )
+    public bool Active => this._ACTV_;
+
+    internal Client ( TcpClient connection )
     {
-        this.id = ID;
-        this._CONNECTION_ = connection;
+        this._CONNECTION_ = connection            ;
+        this._STRM_       = connection.GetStream();
     }
     /*
     internal uint      _PASSWORD_   { get; private set; } = uint.MinValue;
@@ -139,7 +144,7 @@ internal sealed class Client
     */
 }
 
-public sealed class Server ( string ip, int port )
+public sealed class Server ( string ip, int port ) : iEntity
 {
     public string Name { get; private set; } = "Server";
     public string Ip   { get; private set; } = ip      ;
@@ -154,7 +159,7 @@ public sealed class Server ( string ip, int port )
 /// <summary>
 /// 
 /// </summary>
-public class Bridge 
+public sealed class Bridge 
 {
     #region PUBLIC   ENUMS
 
@@ -166,62 +171,65 @@ public class Bridge
     }
 
     #endregion
-    #region INTERNAL STATIC FIELDS
 
-    internal readonly static int      _dPRT_  = 7000     ;
-    internal readonly static int      _cPRT_  = 6000     ;
+    #region PUBLIC   STATIC FIELDS
 
-    internal readonly static string   _DFLT_  = "LC-SERV";
-
-    internal readonly static string[] _OPCDs_ = 
-    {
-        "SND",
-        "FIL",
-        "NXT",
-        "REQ",
-        "UPD",
-        "DEL"
-    };
+    public readonly static string SND = "SND";
+    public readonly static string FIL = "FIL";
+    public readonly static string NXT = "NXT";
+    public readonly static string REQ = "REQ";
 
     #endregion
-    #region INTERNAL STATIC PROPERTIES
+    #region INTERNAL STATIC FIELDS
 
-    internal static List < Action <                string[] >? >? _COPLs_ { get; private set; }
-    internal static List < Action < NetworkStream, string[] >? >? _SOPLs_ { get; private set; }
+    internal readonly static int      _dPRT_  = 6000     ;
+    internal readonly static string   _DFLT_  = "LC-SERV";
+
+    internal readonly static Dictionary < 
+        string, 
+        ( Action < string[] >? _cEVNT_, Action < Client, string[] >? _sEVNT_ ) 
+    > _OPCDs_ = new ()
+    {
+        { SND, ( null, null ) },
+        { FIL, ( null, null ) },
+        { NXT, ( null, null ) },
+        { REQ, ( null, null ) }
+    };
 
     #endregion
     #region PRIVATE  STATIC FIELDS
 
-    private static Runtime_Entity? _RNTM_ = null;
+    private static rtEntity? _RNTM_ = null;
 
     #endregion
 
+    #region PUBLIC   STATIC COMPUTED
+
+    /// <summary>
+    /// 
+    /// </summary>
     public static bool Active => _RNTM_ != null;
+
+    #endregion
 
     #region PUBLIC   STATIC INITIALIZERS
 
     /// <summary>
     /// 
     /// </summary>
+    /// <param name = "mode"></param>
     public static void Initialize ( Mode mode ) 
     {
         switch ( mode )
         {
-            case Mode.CNT : 
-                _RNTM_  = new Client_RUNTIME()                  ;
-                _COPLs_ = [ null, null, null, null, null, null ];
-            break;
-
-            case Mode.SRV : 
-                _RNTM_  = new Server_RUNTIME()                  ; 
-                _SOPLs_ = [ null, null, null, null, null, null ];
-            break;
-
-            default : return;
+            case    Mode.CNT : _RNTM_  = new rtClient(); break ;
+            case    Mode.SRV : _RNTM_  = new rtServer(); break ;
+            default          :                           return;
         }
     }
 
     #endregion
+    #region PUBLIC   STATIC RUNTIME MANAGEMENT
 
     /// <summary>
     /// 
@@ -233,72 +241,137 @@ public class Bridge
     /// </summary>
     public static void Stop  () => _RNTM_?._STOP_();
 
+    #endregion
+    #region PUBLIC   STATiC ACCESSORS
+
     /// <summary>
     /// 
     /// </summary>
-    /// <param name = "opcd"></param>
-    /// <param name = "func"></param>
-    public static void Add ( string opcd, Action < string[] > func )
+    /// <returns></returns>
+    public static iEntity[]? Get () 
     {
-        if ( !_OPCDs_.Contains( opcd ) ) return;
-
-        if ( _RNTM_ is Client_RUNTIME && _COPLs_ != null ) _COPLs_[ Array.IndexOf( _OPCDs_, opcd ) ] = func;
-    }
-
-    public static Server[]? Get_Servers()
-    {
-        if (_RNTM_ is Client_RUNTIME rntm)
-        {
-            foreach (Server s in rntm._SERVs_) Console.WriteLine(s.ToString());
-            return [.. rntm._SERVs_];
-        }
+        if      ( _RNTM_ is rtClient clnt ) return [ .. clnt._SERVs_ ];
+        else if ( _RNTM_ is rtServer serv ) return [ .. serv._CLNTs_ ];
+        
         return null;
     }
 
+    #endregion
+    #region PUBLIC   STATIC MODIFIERS
+
     /// <summary>
     /// 
     /// </summary>
     /// <param name = "opcd"></param>
     /// <param name = "func"></param>
-    public static void Add ( string opcd, Action < NetworkStream, string[] > func )
+    public static void Bind ( string opcd, Action <         string[] > func ) 
     {
-        if ( !_OPCDs_.Contains( opcd ) ) return;
+        if ( !_OPCDs_.ContainsKey( opcd ) ) return;
 
-        if ( _RNTM_ is Server_RUNTIME && _SOPLs_ != null ) _SOPLs_[ Array.IndexOf( _OPCDs_, opcd ) ] = func;
+        if ( _RNTM_ is rtClient ) _OPCDs_[ opcd ] = ( func, null );
     }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "opcd"></param>
+    /// <param name = "func"></param>
+    public static void Bind ( string opcd, Action < Client, string[] > func ) 
+    {
+        if ( !_OPCDs_.ContainsKey( opcd ) ) return;
+
+        if ( _RNTM_ is rtServer ) _OPCDs_[ opcd ] = ( null, func );
+    }
+
+    #endregion
+    #region PUBLIC   STATIC COMMUNICATORS
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "pyld"></param>
+    public static void Send    (              string pyld ) 
+    {
+        if ( _RNTM_ is rtClient clnt ) clnt._SEND_( SND, pyld );
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "clnt"></param>
+    /// <param name = "pyld"></param>
+    public static void Send    ( Client clnt, string pyld ) 
+    {
+        if ( _RNTM_ is rtServer serv ) serv._SEND_( SND, clnt._STRM_, pyld );
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "pyld"></param>
+    public static void Fill    (              string pyld ) 
+    {
+        if ( _RNTM_ is rtClient clnt ) clnt._SEND_( FIL, pyld );
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "clnt"></param>
+    /// <param name = "pyld"></param>
+    public static void Fill    ( Client clnt, string pyld ) 
+    {
+        if ( _RNTM_ is rtServer serv ) serv._SEND_( FIL, clnt._STRM_, pyld );
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "pyld"></param>
+    public static void Request (              string pyld ) 
+    {
+        if ( _RNTM_ is rtClient clnt ) clnt._SEND_( REQ, pyld );
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "clnt"></param>
+    /// <param name = "pyld"></param>
+    public static void Request ( Client clnt, string pyld ) 
+    {
+        if ( _RNTM_ is rtServer serv ) serv._SEND_( REQ, clnt._STRM_, pyld );
+    }
+
+    #endregion
 
     #region CLIENT SPECIFIC
 
-    public static void Search ( string pswd )
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "pswd"></param>
+    public static void Search   ( string pswd ) 
     {
-        if ( _RNTM_ is Client_RUNTIME rntm ) rntm._STRT_( pswd );
+        if ( _RNTM_ is rtClient clnt ) clnt._STRT_( pswd );
     }
 
-    public static bool Connect ( int idx )
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "idx"></param>
+    /// <returns></returns>
+    public static bool Connect ( int     idx  ) 
     {
-        if ( _RNTM_ is Client_RUNTIME rntm ) return rntm._CNCT_( idx );
+        if ( _RNTM_ is rtClient clnt ) return clnt._CNCT_( idx ).GetAwaiter().GetResult();
 
         return false;
     }
 
-    public static void Send     ( string pyld ) 
-    {
-        if ( _RNTM_ is Client_RUNTIME rntm ) rntm._SEND_(_OPCDs_[ 0 ], pyld );
-    }
-
-    public static void Send     ( NetworkStream strm, string pyld ) 
-    {
-        if ( _RNTM_ is Server_RUNTIME rntm ) rntm._SEND_( strm, pyld );
-    }
-
-    public static void Fill     ( NetworkStream strm, string pyld )
-    {
-        if ( _RNTM_ is Server_RUNTIME rntm ) rntm._FILL_( strm, pyld );
-    }
     #endregion
+}
 
-    public static void Request ( string pyld )
-    {
-        if ( _RNTM_ is Client_RUNTIME rntm ) rntm._SEND_(_OPCDs_[ 3 ], pyld );
-    }
+public sealed class Renderer
+{
+
 }

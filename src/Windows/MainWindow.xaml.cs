@@ -1,6 +1,6 @@
 ﻿/// AUTHOR  : Ryan L Harding
 ///
-/// UPDATED : 
+/// UPDATED : 2/20/2026 21:07
 
 #region GENERAL HEADER
 
@@ -22,6 +22,9 @@ using LanChat.SubSystem.UserInterface;
 
 namespace LanChat.Runtime;
 
+/// <summary>
+/// 
+/// </summary>
 public partial class MainWindow : Window
 {
     #region PRIVATE INSTANCE FIELDS
@@ -31,8 +34,6 @@ public partial class MainWindow : Window
 
     private uiPage?      _PAGE_ = null ;
 
-    private DataTemplate _sTMP_        ;
-    private DataTemplate _mTMP_        ;
     private DataTemplate _lTMP_        ;
     private DataTemplate _cTMP_        ;
 
@@ -63,12 +64,14 @@ public partial class MainWindow : Window
         this._APP_                   = app  ;
         this.Style                   = styl!;
         this.Screen_Space.Background = bkgd!;
-        this._sTMP_                  = sTmp!;
-        this._mTMP_                  = mTmp!;
+
         this._lTMP_                  = lTmp!;
         this._cTMP_                  = cTmp!;
 
-        this._lINIT_();
+        Login_Page.Server = sTmp!;
+        Chat_Page.Message = mTmp!;
+
+        this._lINIT_(      );
     }
 
     #region PRIVATE  INSTANCE INITIALIZERS
@@ -80,12 +83,14 @@ public partial class MainWindow : Window
     {
         this.Screen_Space.Child = null;
 
-        Grid    lipg = ( Grid    )this._lTMP_.LoadContent                                    ();
-        Border? hedr = ( Border? )Prefabs.Get_Template( "Header"               )?.LoadContent();
-        Border? lbdr = ( Border? )Prefabs.Get_Template( "Left_Border"          )?.LoadContent();
-        Border? bbdr = ( Border? )Prefabs.Get_Template( "Bottom_Border"        )?.LoadContent();
-        Border? lipl = ( Border? )Prefabs.Get_Template( "Panel"                )?.LoadContent();
-        Grid?   svwd = ( Grid?   )Prefabs.Get_Template( "Extra_Element_Window" )?.LoadContent();
+        Login_Page flip = new                                                                ();  
+
+        Grid       lipg = ( Grid    )this._lTMP_.LoadContent                                    ();
+        Border?    hedr = ( Border? )Prefabs.Get_Template( "Header"               )?.LoadContent();
+        Border?    lbdr = ( Border? )Prefabs.Get_Template( "Left_Border"          )?.LoadContent();
+        Border?    bbdr = ( Border? )Prefabs.Get_Template( "Bottom_Border"        )?.LoadContent();
+        Border?    lipl = ( Border? )Prefabs.Get_Template( "Panel"                )?.LoadContent();
+        Grid?      svwd = ( Grid?   )Prefabs.Get_Template( "Extra_Element_Window" )?.LoadContent();
 
         if ( hedr != null )
         {
@@ -142,11 +147,12 @@ public partial class MainWindow : Window
 
             if ( scrl != null )
             {
+                flip.Scroll_Space       = scrl    ;
                 scrl.PreviewMouseWheel += Dampener;
 
                 StackPanel?   srvs = ( StackPanel? )svwd.FindName( "Elements" ) ;
 
-                if ( srvs != null ) this._APP_._SERVs_( scrl, srvs, this._sTMP_ );
+                if ( srvs != null ) flip.Servers = srvs;
             }
             if ( ttle != null ) ttle!.Text = "Servers";
             if ( ippl != null )
@@ -157,25 +163,33 @@ public partial class MainWindow : Window
                 TextBox? inpt = ( TextBox? )ippl.FindName( "Input" );
                 Button?  entr = ( Button?  )ippl.FindName( "Enter" );
 
-                if ( inpt != null ) inpt.PreviewKeyDown += Invoke  ;
-                if ( entr != null ) entr.Click          += Discover;
+                if ( inpt != null ) 
+                {
+                    flip.Input           = inpt  ;
+                    inpt.PreviewKeyDown += Invoke;
+                }
+                if ( entr != null ) entr.Click += Discover;
 
                 svwd.Children.Add( ippl );
             }
             lipg.Children.Add( svwd );
         }
         this.Screen_Space.Child = lipg;
+        this._PAGE_             = flip;
         this._LSNR_             = new ([
             ( Key.Enter, [ this.Discover ] ),
             ( Key.Tab  , [ this.Tab      ] )
         ]);
+        this._SRCH_ ( true );
     }
 
     /// <summary>
     /// 
     /// </summary>
-    private void _cINIT_ () 
+    internal void _cINIT_ () 
     {
+        this._SRCH_ ( false );
+
         this.Screen_Space.Child = null;
         
         Chat_Page     fctp = new                                                                         ();
@@ -365,18 +379,17 @@ public partial class MainWindow : Window
     /// </summary>
     private void Send     (                                       ) 
     {
-        if ( !this._CYCL_ && this._PAGE_ is Chat_Page ctpg && string.IsNullOrWhiteSpace( ctpg.Input.Text ) )
+        if ( !this._CYCL_ && this._PAGE_ is Chat_Page ctpg && !string.IsNullOrWhiteSpace( ctpg.Input.Text ) )
         {
             this._CYCL_ = true;
-        
+
             Messager.Send   ( ctpg.Input.Text );
             ctpg.Input.Clear(                 );
-            Renderer.Refresh( 
-                false            , 
-                ctpg.Scroll_Space, 
-                ctpg.Messages    , 
-                this._mTMP_ 
-            );
+
+            if ( !Renderer.Refresh( false, ctpg.Scroll_Space, ctpg.Messages, Chat_Page.Message ) )
+            {
+                Renderer.Render_Next( ctpg.Scroll_Space, ctpg.Messages, Chat_Page.Message );
+            }
             this._CYCL_ = false;
         }
     }
@@ -394,7 +407,7 @@ public partial class MainWindow : Window
     /// </summary>
     private void Discover (                                       ) 
     {
-
+        // TODO;
     }
 
     /// <summary>
@@ -406,11 +419,24 @@ public partial class MainWindow : Window
         {
             this._CYCL_ = true;
 
-            Renderer.Render_Upward  ( ctpg.Scroll_Space, ctpg.Messages, this._mTMP_, 20 );
-            Renderer.Render_Downward( ctpg.Scroll_Space, ctpg.Messages, this._mTMP_, 20 );
+            Renderer.Render_Upward  ( ctpg.Scroll_Space, ctpg.Messages, Chat_Page.Message, 20 );
+            Renderer.Render_Downward( ctpg.Scroll_Space, ctpg.Messages, Chat_Page.Message, 20 );
         
             this._CYCL_ = false;
         }
+    }
+
+    #endregion
+    #region PRIVATE  INSTANCE FUNCTIONS
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "stat"></param>
+    private void _SRCH_ ( bool stat ) 
+    {
+        if   ( stat && this._PAGE_ is Login_Page lgpg ) this._APP_._SRCH_( lgpg.Scroll_Space, lgpg.Servers, Login_Page.Server );
+        else                                            this._APP_._SRCH_(                                                    );
     }
 
     #endregion

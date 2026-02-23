@@ -13,6 +13,7 @@ using System.Net.Sockets;
 #endregion
 #region LANCHAT HEADER
 
+using LanChat.SubSystem.Core;
 using LanChat.SubSystem.Network;
 using LanChat.SubSystem.Serialization;
 
@@ -40,6 +41,7 @@ public static class Messager
     internal static TimeSpan _OFST_ { get; private set; }
 
     #endregion
+
     #region PUBLIC   STATIC COMPUTED
 
     /// <summary>
@@ -61,13 +63,18 @@ public static class Messager
 
             Bridge.Request( "COUNT" );
 
-            while ( _SIZE_ < 0 ) Thread.Sleep( 16 );
+            if ( _SIZE_ >= 0 ) return _SIZE_;
 
+            Retry rt = new();
+
+            rt.Attempt_Async( () => _SIZE_ >= 0 ).GetAwaiter().GetResult();
+            
             return _SIZE_;
         }
     }
 
     #endregion
+
     #region PUBLIC   STATIC INITIALIZERS
 
     /// <summary>
@@ -78,25 +85,33 @@ public static class Messager
     {
         if ( !Bridge.Active ) return;
 
-        Bridge.Request( "TIME" );
-
-        while ( _gTIM_ ==  DateTime.MinValue ) Thread.Sleep( 16 );
-
-        _NAME_ = name                 ;
-        _OFST_ = _gTIM_ - DateTime.Now;
-
         switch ( mode )
         {
             case Bridge.Mode.CNT :
-                Bridge.Add( "SND", _SEND_CLIENT_ );
-                Bridge.Add( "NXT", _NEXT_CLIENT_ );
+                Bridge.Bind( Bridge.SND, _SEND_CLIENT_ );
+                Bridge.Bind( Bridge.NXT, _NEXT_CLIENT_ );
             break;
 
             case Bridge.Mode.SRV :
-                Bridge.Add( "SND", _SEND_SERVER_ );
-                Bridge.Add( "REQ", _RQST_SERVER_ );
+                Bridge.Bind( Bridge.SND, _SEND_SERVER_ );
+                Bridge.Bind( Bridge.REQ, _RQST_SERVER_ );
             break;
         }
+        if ( mode == Bridge.Mode.CNT )
+        {
+            Bridge.Request( "TIME" );
+
+            Retry rt = new();
+
+            rt.Attempt_Async( () => _gTIM_ != DateTime.MinValue ).GetAwaiter().GetResult();
+        }
+        else
+        {
+            Batch.Initialize( 20 );
+            _gTIM_ = DateTime.Now;
+        }
+        _NAME_ = name;
+        _OFST_ = _gTIM_ - DateTime.Now;
     }
 
     #endregion
@@ -141,7 +156,11 @@ public static class Messager
     /// <returns></returns>
     public static Batch   Deferred_Fetch_Batch   () 
     {
-        while ( _bQUE_.Count <= 0 ) Thread.Sleep( 16 );
+        if ( _bQUE_.Count > 0 ) return _bQUE_.Dequeue();
+
+        Retry rt = new();
+
+        rt.Attempt_Async( () => _bQUE_.Count > 0 ).GetAwaiter().GetResult();
 
         return _bQUE_.Dequeue();
     }
@@ -169,7 +188,11 @@ public static class Messager
     /// <returns></returns>
     public static Message Deferred_Fetch_Message () 
     {
-        while ( _mQUE_.Count <= 0 ) Thread.Sleep( 16 );
+        if ( _mQUE_.Count > 0 ) return _mQUE_.Dequeue();
+
+        Retry rt = new();
+
+        rt.Attempt_Async( () => _mQUE_.Count > 0 ).GetAwaiter().GetResult();
 
         return _mQUE_.Dequeue();
     }
@@ -189,7 +212,7 @@ public static class Messager
     /// 
     /// </summary>
     /// <param name = "elmts"></param>
-    private static void _SEND_CLIENT_ (                     string[] elmts ) 
+    private static void _SEND_CLIENT_ (              string[] elmts ) 
     {
         if ( elmts.Length == 4 )
         {
@@ -208,7 +231,7 @@ public static class Messager
     /// 
     /// </summary>
     /// <param name = "elmts"></param>
-    private static void _NEXT_CLIENT_ (                     string[] elmts ) 
+    private static void _NEXT_CLIENT_ (              string[] elmts ) 
     {
         Batch btch = new ();
 
@@ -224,9 +247,9 @@ public static class Messager
     /// <summary>
     /// 
     /// </summary>
-    /// <param name = "strm" ></param>
+    /// <param name = "clnt" ></param>
     /// <param name = "elmts"></param>
-    private static void _SEND_SERVER_ ( NetworkStream strm, string[] elmts ) 
+    private static void _SEND_SERVER_ ( Client clnt, string[] elmts ) 
     {
         if ( elmts.Length == 4 )
         {
@@ -240,13 +263,13 @@ public static class Messager
 
             Batch btch = Batch.Get( idx );
 
-            Bridge.Fill( strm, btch.Size.ToString() );
+            Bridge.Fill( clnt, btch.Size.ToString() );
 
             Message? cur = btch.First;
 
             while ( cur != null )
             {
-                Bridge.Fill( strm, cur.ToString() );
+                Bridge.Fill( clnt, cur.ToString() );
 
                 cur = cur._NEXT_;
             }
@@ -256,16 +279,16 @@ public static class Messager
     /// <summary>
     /// 
     /// </summary>
-    /// <param name = "strm" ></param>
+    /// <param name = "clnt" ></param>
     /// <param name = "elmts"></param>
-    private static void _RQST_SERVER_ ( NetworkStream strm, string[] elmts ) 
+    private static void _RQST_SERVER_ ( Client clnt, string[] elmts ) 
     {
         if ( elmts.Length != 2 ) return;
 
         switch ( elmts[ 1 ] )
         {
-            case    "TIME"  : Bridge.Send( strm, DateTime.Now.ToString() ); break ;
-            case    "COUNT" : Bridge.Send( strm, Batch.Count.ToString()  ); break ;
+            case    "TIME"  : Bridge.Send( clnt, DateTime.Now.ToString() ); break ;
+            case    "COUNT" : Bridge.Send( clnt, Batch.Count.ToString()  ); break ;
             default         :                                               return;
         }
     }
@@ -323,7 +346,7 @@ public sealed class Message
     /// <param name = "sndr"></param>
     /// <param name = "time"></param>
     /// <param name = "cntt"></param>
-    public Message ( string sndr, DateTime time, string cntt ) 
+    internal Message ( string sndr, DateTime time, string cntt ) 
     {
         this.Sender  = sndr;
         this.Time    = time;
@@ -395,18 +418,12 @@ public sealed class Batch
     /// <param name = "mPnl"></param>
     /// <param name = "msgs"></param>
     /// <param name = "tMsg"></param>
-    public static void Initialize ( 
-        ScrollViewer mPnl, 
-        StackPanel   msgs, 
-        DataTemplate tMsg,
-        int          bSiz
-    ) {
+    public static void Initialize ( int bSiz ) {
         if ( _BATCHES_.Count > 0 && bSiz > _sBND_ ) return;
 
         _bSIZ_ = bSiz;
 
-        Include         ( new ( "Welcome Ryan!" )                  );
-        Renderer.Refresh( true                  , mPnl, msgs, tMsg );
+        Include( new ( "Welcome Ryan!" ) );
     }
 
     #endregion
@@ -678,10 +695,14 @@ public static class Renderer
 
         FrameworkElement elmt = ( FrameworkElement )tMsg.LoadContent();
 
-        elmt.DataContext = Messager.Deferred_Fetch_Message();
+        Message msg = Messager.Deferred_Fetch_Message();
+
+        elmt.DataContext = msg;
 
         msgs.Children.Add( elmt );
         mPnl.UpdateLayout(      );
+
+        if ( msg.Sender == Messager._NAME_ ) mPnl.ScrollToEnd();
     }
 
     /// <summary>
@@ -698,13 +719,15 @@ public static class Renderer
         StackPanel   msgs, 
         DataTemplate tMsg 
     ) {
-        if ( !srtu && lIDX >= Messager.Size - 1 ) return false;
+        int size = Messager.Size;
+
+        if ( !srtu && lIDX >= size - 1 ) return false;
 
         msgs.Children.Clear    ();
         Messager.Clear_Messages();
 
-        uIDX = Messager.Size - 2;
-        lIDX = Messager.Size - 1;
+        uIDX = size - 2;
+        lIDX = size - 1;
 
         Messager.Send( uIDX );
 
@@ -766,15 +789,13 @@ public static class Renderer
         DataTemplate tMsg,
         int          pdng
     ) {
-        if ( 
-            Messager.Size       == 0    || 
-            _lBTC_              == null || 
-            uIDX                <= 0    || 
-            mPnl.VerticalOffset >  0 
-        ) return;
+        if ( mPnl.VerticalOffset > 0 || _lBTC_ == null ) return;
 
-        for ( int i = 0; i < _lBTC_.Size; i++ ) 
-            msgs.Children.RemoveAt( msgs.Children.Count - 1 );
+        int size = Messager.Size;
+
+        if ( size == 0 || uIDX <= 0 ) return;
+
+        for ( int i = 0; i < _lBTC_.Size; i++ ) msgs.Children.RemoveAt( msgs.Children.Count - 1 );
         
         lIDX = uIDX;
         uIDX--     ;
@@ -819,12 +840,11 @@ public static class Renderer
         DataTemplate tMsg,
         int          pdng
     ) {
-        if (
-            Messager.Size       == 0                     ||
-            _uBTC_              == null                  ||
-            lIDX                >= Messager.Size - 1     ||
-            mPnl.VerticalOffset <  mPnl.ScrollableHeight 
-        ) return;
+        if ( mPnl.VerticalOffset < mPnl.ScrollableHeight || _uBTC_ == null ) return;
+
+        int size = Messager.Size;
+
+        if ( size == 0 || lIDX >= size - 1 ) return;
 
         double height = _uBTC_.Size * pdng;
 
