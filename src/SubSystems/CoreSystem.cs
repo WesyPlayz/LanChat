@@ -1,6 +1,6 @@
 ﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED   : 2/23/2026 01:19
+/// UPDATED   : 2/23/2026 15:29
 /// 
 /// REMAINING : PARTIAL ( SUBJECT TO FILL )
 
@@ -25,7 +25,7 @@ public struct Sync  ( uint proc = 0 )
 
     #region PRIVATE INSTANCE FIELDS
 
-    private Status State = Status.IDL;
+    private Status _STAT_ = Status.IDL;
 
     #endregion
     #region PUBLIC  INSTANCE PROPERTIES
@@ -39,12 +39,12 @@ public struct Sync  ( uint proc = 0 )
     /// <summary>
     /// 
     /// </summary>
-    public readonly bool Idle     => this.State == Status.IDL;
+    public readonly bool Idle     => this._STAT_ == Status.IDL;
 
     /// <summary>
     /// 
     /// </summary>
-    public readonly bool Continue => this.State == Status.RUN;
+    public readonly bool Continue => this._STAT_ == Status.RUN;
 
     #endregion
 
@@ -55,10 +55,10 @@ public struct Sync  ( uint proc = 0 )
     /// </summary>
     public          void Start () 
     {
-        if ( this.State == Status.END ) return;
+        if ( this._STAT_ == Status.END ) return;
 
         this.Processes++           ;
-        this.State     = Status.RUN;
+        this._STAT_ = Status.RUN;
     }
 
     /// <summary>
@@ -66,9 +66,9 @@ public struct Sync  ( uint proc = 0 )
     /// </summary>
     public          void Close () 
     {
-        if ( this.State != Status.RUN ) return;
+        if ( this._STAT_ != Status.RUN ) return;
 
-        this.State = Status.END;
+        this._STAT_ = Status.END;
     }
 
     /// <summary>
@@ -76,11 +76,11 @@ public struct Sync  ( uint proc = 0 )
     /// </summary>
     public          void Stop  () 
     {
-        if ( this.State == Status.IDL ) return;
+        if ( this._STAT_ == Status.IDL ) return;
 
         this.Processes = Math.Max( 0, this.Processes - 1 );
 
-        if ( this.Processes <= 0 ) this.State = Status.IDL;
+        if ( this.Processes <= 0 ) this._STAT_ = Status.IDL;
     }
 
     /// <summary>
@@ -88,7 +88,7 @@ public struct Sync  ( uint proc = 0 )
     /// </summary>
     public readonly void Yield () 
     {
-        while ( this.State != Status.IDL ) Thread.Sleep( 16 );
+        while ( this._STAT_ != Status.IDL ) Thread.Sleep( 16 );
     }
 
     #endregion

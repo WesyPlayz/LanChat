@@ -360,11 +360,6 @@ internal sealed   class rtClient : rtEntity
 /// </summary>
 internal sealed   class rtServer : rtEntity
 {
-    #region INTERNAL INSTANCE FIELDS
-
-    internal List < Client > _CLNTs_ = [];
-
-    #endregion
     #region PRIVATE  INSTANCE FIELDS
 
     private TcpListener?    _SERV_ = null         ;
@@ -514,7 +509,7 @@ internal sealed   class rtServer : rtEntity
         Client        clnt = new ( cntn );
         string        rqst = ""          ;
 
-        this._CLNTs_.Add( clnt );
+        this._ETTYs_.Add( clnt );
         
         while ( this._SYNC_.Continue )
         {
