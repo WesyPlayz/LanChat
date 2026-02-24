@@ -1,6 +1,6 @@
 ﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED   : 2/23/2026 14:52
+/// UPDATED   : 2/23/2026 16:37
 /// 
 /// REMAINING : FINISHED ( SUBJECT TO UPDATE )
 
@@ -13,7 +13,7 @@ using System.Text;
 #endregion
 #region LANCHAT HEADER
 
-using LanChat.SubSystem.Core;
+using LanChat.SubSystem.Scheduling;
 using LanChat.SubSystem.Serialization;
 
 #endregion
@@ -67,12 +67,12 @@ internal sealed   class rtClient : rtEntity
 
     private List < string > _PSWDs_ = []               ;
 
-    private TcpClient       _CLNT_  = null!            ;
+    private TcpClient       _CONN_  = null!            ;
     private NetworkStream   _STRM_  = null!            ;
     private byte[]          _BFFR_  = new byte[ 1024 ] ;
 
     private Server?         _SERV_  = null             ;
-    private DateTime        _GTIM_  = DateTime.MinValue;
+    private DateTime        _gTIM_  = DateTime.MinValue;
 
     private List < string > _eQUE_  = []               ;
 
@@ -112,7 +112,7 @@ internal sealed   class rtClient : rtEntity
 
         this._SYNC_.Close ();
         this._SYNC_.Yield ();
-        this._DTGM_?.Close();
+        this._DTGM_!.Close();
 
         this._DTGM_ = null!;
     }
@@ -125,13 +125,13 @@ internal sealed   class rtClient : rtEntity
     {
         if ( this._SERV_ == null ) return null;
 
-        DateTime time = this._GTIM_;
+        DateTime time = this._gTIM_;
 
         this._SEND_( Bridge.SND, "TIME" );
 
-        while ( time == this._GTIM_ ) Thread.Sleep( 16 );
+        while ( time == this._gTIM_ ) Thread.Sleep( 16 );
 
-        return this._GTIM_;
+        return this._gTIM_;
     }
 
     #endregion
@@ -160,13 +160,13 @@ internal sealed   class rtClient : rtEntity
         if ( !rt.Attempt( () => this._ETTYs_.Count > 0 ) || this._ETTYs_[ idx ].Equals( this._SERV_ ) ) return false;
 
         this._SYNC_.Start();
-        this._CLNT_ = new();
+        this._CONN_ = new();
 
         bool rslt = true;
 
         try
         {
-            if ( !( this._ETTYs_[ idx ] is Server serv ) )
+            if ( this._ETTYs_[ idx ] is not Server serv )
             {
                 this._SYNC_.Stop();
 
@@ -174,9 +174,9 @@ internal sealed   class rtClient : rtEntity
             }
             this._SERV_ = serv;
 
-            await this._CLNT_.ConnectAsync( this._SERV_.Ip, this._SERV_.Port );
+            await this._CONN_.ConnectAsync( this._SERV_.Ip, this._SERV_.Port );
 
-            this._STRM_ = this._CLNT_.GetStream();
+            this._STRM_ = this._CONN_.GetStream();
 
             _ = Task.Run( () => this._COMM_() );
         }
@@ -362,7 +362,7 @@ internal sealed   class rtServer : rtEntity
 {
     #region PRIVATE  INSTANCE FIELDS
 
-    private TcpListener?    _SERV_ = null         ;
+    private TcpListener?    _CONN_ = null         ;
     private int             _PORT_ = 7000         ;
     private string          _PSWD_ = Bridge._DFLT_;
 
@@ -390,7 +390,7 @@ internal sealed   class rtServer : rtEntity
     /// </summary>
     internal override void      _STRT_ () 
     {
-        if ( !this._SYNC_.Idle || this._SERV_ != null || this._DTGM_ != null ) return;
+        if ( !this._SYNC_.Idle || this._CONN_ != null || this._DTGM_ != null ) return;
 
         this._DCVR_();
         this._PROC_();
@@ -401,15 +401,15 @@ internal sealed   class rtServer : rtEntity
     /// </summary>
     internal override void      _STOP_ () 
     {
-        if ( !this._SYNC_.Continue || this._SERV_ == null || this._DTGM_ == null ) return;
+        if ( !this._SYNC_.Continue || this._CONN_ == null || this._DTGM_ == null ) return;
 
         this._SYNC_.Close ();
         this._SYNC_.Yield ();
 
-        this._SERV_?.Stop ();
-        this._DTGM_?.Close();
+        this._CONN_!.Stop ();
+        this._DTGM_!.Close();
 
-        this._SERV_ = null!;
+        this._CONN_ = null!;
         this._DTGM_ = null!;
     }
 
@@ -458,7 +458,7 @@ internal sealed   class rtServer : rtEntity
 
         foreach ( iEntity etty in this._ETTYs_ )
         {
-            if ( !( etty is Client clnt ) ) continue;
+            if ( etty is not Client clnt ) continue;
 
             clnt._STRM_.Write( rqst, 0, rqst.Length );
         }
@@ -571,13 +571,13 @@ internal sealed   class rtServer : rtEntity
     private void _PROC_ () 
     {
         this._SYNC_.Start (                            );
-        this._SERV_ = new ( IPAddress.Any, this._PORT_ );
-        this._SERV_.Start();
+        this._CONN_ = new ( IPAddress.Any, this._PORT_ );
+        this._CONN_.Start();
 
         Task.Run( async () => {
             while ( this._SYNC_.Continue )
             {
-                TcpClient clnt = await this._SERV_.AcceptTcpClientAsync();
+                TcpClient clnt = await this._CONN_.AcceptTcpClientAsync();
 
                 _  = this._COMM_( clnt );
             }

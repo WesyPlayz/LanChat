@@ -1,16 +1,38 @@
 ﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED   : 2/23/2026 15:29
+/// UPDATED   : 2/23/2026 16:28
 /// 
-/// REMAINING : PARTIAL ( SUBJECT TO FILL )
+/// REMAINING : FINISHED ( SUBJECT TO UPDATE )
 
-namespace LanChat.SubSystem.Core;
+namespace LanChat.SubSystem.Scheduling;
+
+/// <summary>
+/// 
+/// </summary>
+public static class  Time  
+{
+    #region PUBLIC STATIC PROPERTIES
+
+    public static int Tick { get; private set; } = 1;
+
+    #endregion
+
+    #region PUBLIC STATIC INITIALIZERS
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "tick"></param>
+    public static void Initialize ( int tick ) => Tick = tick;
+
+    #endregion
+}
 
 /// <summary>
 /// 
 /// </summary>
 /// <param name = "proc"></param>
-public struct Sync  ( uint proc = 0 )
+public        struct Sync  ( uint proc = 0, int mult = 1 )
 {
     #region PUBLIC  ENUM
 
@@ -25,7 +47,8 @@ public struct Sync  ( uint proc = 0 )
 
     #region PRIVATE INSTANCE FIELDS
 
-    private Status _STAT_ = Status.IDL;
+    private Status _STAT_ = Status.IDL         ;
+    private int    _MULT_ = mult > 0 ? mult : 1;
 
     #endregion
     #region PUBLIC  INSTANCE PROPERTIES
@@ -53,7 +76,7 @@ public struct Sync  ( uint proc = 0 )
     /// <summary>
     /// 
     /// </summary>
-    public          void Start () 
+    public                void          Start       () 
     {
         if ( this._STAT_ == Status.END ) return;
 
@@ -64,7 +87,7 @@ public struct Sync  ( uint proc = 0 )
     /// <summary>
     /// 
     /// </summary>
-    public          void Close () 
+    public                void          Close       () 
     {
         if ( this._STAT_ != Status.RUN ) return;
 
@@ -74,7 +97,7 @@ public struct Sync  ( uint proc = 0 )
     /// <summary>
     /// 
     /// </summary>
-    public          void Stop  () 
+    public                void          Stop        () 
     {
         if ( this._STAT_ == Status.IDL ) return;
 
@@ -86,9 +109,20 @@ public struct Sync  ( uint proc = 0 )
     /// <summary>
     /// 
     /// </summary>
-    public readonly void Yield () 
+    public readonly       void          Yield       () 
     {
-        while ( this._STAT_ != Status.IDL ) Thread.Sleep( 16 );
+        while ( this._STAT_ != Status.IDL ) Thread.Sleep( Time.Tick * this._MULT_ );
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    public readonly async Task < bool > Yield_Async () 
+    {
+        while ( this._STAT_ != Status.IDL ) await Task.Delay( Time.Tick * this._MULT_ ).ConfigureAwait( false );
+        
+        return true;
     }
 
     #endregion
@@ -98,15 +132,22 @@ public struct Sync  ( uint proc = 0 )
 /// 
 /// </summary>
 /// <param name = "trys"></param>
-public struct Retry ( uint trys = 0 )
+public        struct Retry ( uint trys = 0, int mult = 1 )
 {
-    private uint _TRYS_ = trys;
+    #region PRIVATE INSTANCE FIELDS
+
+    private uint _TRYS_ = trys               ;
+    private int  _MULT_ = mult > 0 ? mult : 1;
+
+    #endregion
+
+    #region PUBLIC  INSTANCE FUNCTIONS
 
     /// <summary>
     /// 
     /// </summary>
     /// <param name = "cndt"></param>
-    public       bool          Attempt       ( Func < bool > cndt ) 
+    public readonly bool          Attempt       ( Func < bool > cndt ) 
     {
         uint cur = this._TRYS_ == 0 ? 1 : this._TRYS_;
 
@@ -114,7 +155,7 @@ public struct Retry ( uint trys = 0 )
         {
             if ( cndt() ) return true;
 
-            Thread.Sleep( 16 );
+            Thread.Sleep( Time.Tick * this._MULT_ );
 
             if ( this._TRYS_ > 0 ) cur--;
         }
@@ -126,7 +167,7 @@ public struct Retry ( uint trys = 0 )
     /// </summary>
     /// <param name = "cndt"></param>
     /// <returns></returns>
-    public async Task < bool > Attempt_Async ( Func < bool > cndt ) 
+    public readonly async Task < bool > Attempt_Async ( Func < bool > cndt ) 
     {
         uint cur = this._TRYS_ == 0 ? 1 : this._TRYS_;
 
@@ -134,10 +175,12 @@ public struct Retry ( uint trys = 0 )
         {
             if ( cndt() ) return true;
 
-            await Task.Delay( 1000 ).ConfigureAwait( false );
+            await Task.Delay( Time.Tick * this._MULT_ ).ConfigureAwait( false );
 
             if ( this._TRYS_ > 0 ) cur--;
         }
         return false;
     }
+
+    #endregion
 }

@@ -162,7 +162,7 @@ public sealed class Server   ( string ip, int port ) : iEntity
     public override bool Equals      ( object? obj ) => obj is Server serv && this.Ip == serv.Ip && this.Port == serv.Port;
     public override int  GetHashCode (             ) => HashCode.Combine( this.Ip, this.Port );
 
-    public override string ToString ( ) => $"{this.Ip} : {this.Port}";
+    public override string ToString ( ) => $"{ this.Ip } : { this.Port }";
 }
 
 /// <summary>

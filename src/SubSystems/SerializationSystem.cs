@@ -1,6 +1,6 @@
 ﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED   : 2/23/2026 01:24
+/// UPDATED   : 2/23/2026 16:30
 /// 
 /// REMAINING : ALL ( SUBJECT TO FILL )
 
@@ -17,6 +17,7 @@ public static class Serializer
     public readonly static string TERMINATOR = "< TRM >";
 
     #endregion
+
     #region PUBLIC STATIC FUNCTIONS
 
     /// <summary>
