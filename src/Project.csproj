@@ -9,7 +9,160 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Assets\Fonts\Nunito\Nunito-Black.ttf" />
+    <None Remove="Assets\Fonts\Nunito\Nunito-BlackItalic.ttf" />
+    <None Remove="Assets\Fonts\Nunito\Nunito-Bold.ttf" />
+    <None Remove="Assets\Fonts\Nunito\Nunito-BoldItalic.ttf" />
+    <None Remove="Assets\Fonts\Nunito\Nunito-ExtraBold.ttf" />
+    <None Remove="Assets\Fonts\Nunito\Nunito-ExtraBoldItalic.ttf" />
+    <None Remove="Assets\Fonts\Nunito\Nunito-ExtraLight.ttf" />
+    <None Remove="Assets\Fonts\Nunito\Nunito-ExtraLightItalic.ttf" />
+    <None Remove="Assets\Fonts\Nunito\Nunito-Italic-VariableFont_wght.ttf" />
+    <None Remove="Assets\Fonts\Nunito\Nunito-Italic.ttf" />
+    <None Remove="Assets\Fonts\Nunito\Nunito-Light.ttf" />
+    <None Remove="Assets\Fonts\Nunito\Nunito-LightItalic.ttf" />
+    <None Remove="Assets\Fonts\Nunito\Nunito-Medium.ttf" />
+    <None Remove="Assets\Fonts\Nunito\Nunito-MediumItalic.ttf" />
+    <None Remove="Assets\Fonts\Nunito\Nunito-Regular.ttf" />
+    <None Remove="Assets\Fonts\Nunito\Nunito-SemiBold.ttf" />
+    <None Remove="Assets\Fonts\Nunito\Nunito-SemiBoldItalic.ttf" />
+    <None Remove="Assets\Fonts\Nunito\Nunito-VariableFont_wght.ttf" />
+    <None Remove="Assets\Fonts\Orbitron\Orbitron-Black.ttf" />
+    <None Remove="Assets\Fonts\Orbitron\Orbitron-Bold.ttf" />
+    <None Remove="Assets\Fonts\Orbitron\Orbitron-ExtraBold.ttf" />
+    <None Remove="Assets\Fonts\Orbitron\Orbitron-Medium.ttf" />
+    <None Remove="Assets\Fonts\Orbitron\Orbitron-Regular.ttf" />
+    <None Remove="Assets\Fonts\Orbitron\Orbitron-SemiBold.ttf" />
+    <None Remove="Assets\Fonts\Orbitron\Orbitron-VariableFont_wght.ttf" />
+    <None Remove="Assets\Images\Client.png" />
+    <None Remove="Assets\Images\Client_HVR.png" />
+    <None Remove="Assets\Images\Enter.png" />
+    <None Remove="Assets\Images\Exit.png" />
+    <None Remove="Assets\Images\Fullscreen.png" />
+    <None Remove="Assets\Images\Local_Host.png" />
+    <None Remove="Assets\Images\Local_Host_HVR.png" />
+    <None Remove="Assets\Images\Minimize.png" />
+    <None Remove="Assets\Images\Server.png" />
+    <None Remove="Assets\Images\Server_HVR.png" />
+    <None Remove="Assets\Images\Windowed.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Page Include="App.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\Fonts\Nunito\Nunito-Black.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Fonts\Nunito\Nunito-BlackItalic.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Fonts\Nunito\Nunito-Bold.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Fonts\Nunito\Nunito-BoldItalic.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Fonts\Nunito\Nunito-ExtraBold.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Fonts\Nunito\Nunito-ExtraBoldItalic.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Fonts\Nunito\Nunito-ExtraLight.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Fonts\Nunito\Nunito-ExtraLightItalic.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Fonts\Nunito\Nunito-Italic-VariableFont_wght.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Fonts\Nunito\Nunito-Italic.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Fonts\Nunito\Nunito-Light.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Fonts\Nunito\Nunito-LightItalic.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Fonts\Nunito\Nunito-Medium.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Fonts\Nunito\Nunito-MediumItalic.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Fonts\Nunito\Nunito-Regular.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Fonts\Nunito\Nunito-SemiBold.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Fonts\Nunito\Nunito-SemiBoldItalic.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Fonts\Nunito\Nunito-VariableFont_wght.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Fonts\Orbitron\Orbitron-Black.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Fonts\Orbitron\Orbitron-Bold.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Fonts\Orbitron\Orbitron-ExtraBold.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Fonts\Orbitron\Orbitron-Medium.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Fonts\Orbitron\Orbitron-Regular.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Fonts\Orbitron\Orbitron-SemiBold.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Fonts\Orbitron\Orbitron-VariableFont_wght.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\Client.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\Client_HVR.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\Enter.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\Exit.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\Fullscreen.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\Local_Host.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\Local_Host_HVR.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\Minimize.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\Server.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\Server_HVR.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\Windowed.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Prefabs.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
 </Project>
