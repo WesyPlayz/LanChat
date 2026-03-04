@@ -1,6 +1,6 @@
 ﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED   : 2/23/2026 01:13
+/// UPDATED   : 3/03/2026 12:29
 /// 
 /// REMAINING :
 ///     Renderer CLASS
@@ -14,13 +14,15 @@ using System.Net.Sockets;
 #endregion
 #region LANCHAT HEADER
 
-using LanChat.SubSystem.Core;
+using LanChat.SubSystem.Scheduling;
 using LanChat.SubSystem.Network;
 using LanChat.SubSystem.Serialization;
 
 #endregion
 
 namespace LanChat.SubSystem.Messaging;
+
+// STATIC CLASSES //
 
 /// <summary>
 /// 
@@ -37,10 +39,10 @@ public static class Messager
 
     private static DateTime                  _gTIM_ = DateTime.MinValue; // Global Time
 
-    private static Action < int    , Batch > _bEVT_ = null!            ; // Batch Event
-    private static Action < Message        > _mEVT_ = null!            ; // Message Event
-    private static Action < DateTime       > _tEVT_ = null!            ; // Time Event
-    private static Action < int            > _cEVT_ = null!            ; // Count Event
+    private static Action < int    , Batch   > _bEVT_ = null!          ; // Batch Event
+    private static Action < int    , Message > _mEVT_ = null!          ; // Message Event
+    private static Action < DateTime         > _tEVT_ = null!          ; // Time Event
+    private static Action < int              > _cEVT_ = null!          ; // Count Event
 
     #endregion
     #region INTERNAL STATIC PROPERTIES
@@ -130,25 +132,25 @@ public static class Messager
     /// 
     /// </summary>
     /// <param name = "func"></param>
-    public static void Bind ( Action < int    , Batch > func ) => _bEVT_ = func;
+    public static void Bind ( Action < int     , Batch   > func ) => _bEVT_ = func;
 
     /// <summary>
     /// 
     /// </summary>
     /// <param name = "func"></param>
-    public static void Bind ( Action < Message        > func ) => _mEVT_ = func;
+    public static void Bind ( Action < int     , Message > func ) => _mEVT_ = func;
 
     /// <summary>
     /// 
     /// </summary>
     /// <param name = "func"></param>
-    public static void Bind ( Action < DateTime       > func ) => _tEVT_ = func;
+    public static void Bind ( Action < DateTime          > func ) => _tEVT_ = func;
 
     /// <summary>
     /// 
     /// </summary>
     /// <param name = "func"></param>
-    public static void Bind ( Action < int            > func ) => _cEVT_ = func;
+    public static void Bind ( Action < int               > func ) => _cEVT_ = func;
 
     #endregion
     #region PRIVATE  STATIC EVENTS
@@ -159,13 +161,7 @@ public static class Messager
     /// <param name = "elmts"></param>
     private static void _SEND_CLIENT_ (              string[] elmts ) 
     {
-        if ( elmts.Length == 4 )
-        {
-            if ( !DateTime.TryParse( elmts[ 2 ], out DateTime time ) ) return;
-
-            _mEVT_?.Invoke( new ( elmts[ 1 ], time - _OFST_, elmts[ 3 ] ) );
-        }
-        else if ( elmts.Length == 2 )
+        if ( elmts.Length == 2 )
         {
             if      ( DateTime.TryParse( elmts[ 1 ], out DateTime time  ) )
             {
@@ -201,7 +197,7 @@ public static class Messager
         {
             if ( !DateTime.TryParse( elmts[ 2 ], out DateTime time ) ) return;
 
-            _mEVT_?.Invoke( new( elmts[ 1 ], time - _OFST_, elmts[ 3 ] ) );
+            _mEVT_?.Invoke( bIdx, new( elmts[ 1 ], time - _OFST_, elmts[ 3 ] ) );
         }
     }
 
@@ -265,6 +261,287 @@ public static class Messager
 
     #endregion
 }
+
+/// <summary>
+/// 
+/// </summary>
+public static class Renderer 
+{
+    #region PUBLIC   ENUMS
+
+    public enum Mode
+    {
+        IDL,
+        RFS,
+        DIR,
+    }
+
+    #endregion
+    #region PRIVATE  INSTANCE FIELDS
+
+    private static int          _bCNT_ = -1      ;
+
+    private static int          _uIDX_ = -1      ; // The Upper Renderable Batch Index.
+    private static int          _lIDX_ =  0      ; // The Lower Renderable Batch Index.
+
+    private static Batch?       _uBTC_ = null!   ; // The Upper Renderable Batch Object.
+    private static Batch?       _lBTC_ = null!   ; // The Lower Renderable Batch Object.
+
+    private static ScrollViewer _SCRL_ = null!   ;
+    private static StackPanel   _MSGs_ = null!   ;
+    private static DataTemplate _mTMP_ = null!   ;
+
+    private static Mode         _MODE_ = Mode.IDL;
+
+    #endregion
+
+    #region PUBLIC   STATIC   INITIALIZERS
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "mPnl"></param>
+    /// <param name = "msgs"></param>
+    /// <param name = "tMsg"></param>
+    public static void Initialize (
+        ScrollViewer scrl, 
+        StackPanel   msgs, 
+        DataTemplate mTmp
+    ) {
+        _SCRL_ = scrl;
+        _MSGs_ = msgs;
+        _mTMP_ = mTmp;
+
+        Messager.Bind( _bLOD_ );
+        Messager.Bind( _mLOD_ );
+
+        Refresh();
+    }
+
+    #endregion
+    #region PRIVATE  STATIC   MODIFIERS
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "idx"></param>
+    /// <param name = "btch"></param>
+    private static void _bLOD_ ( int idx, Batch   btch ) 
+    {
+        if      ( idx == _uIDX_ ) 
+        {
+            _uBTC_ = btch;
+
+            switch ( _MODE_ )
+            {
+                case Mode.RFS :
+                    _RFSH_            ( btch );
+                    _SCRL_.ScrollToEnd(      );
+                break;
+
+                case Mode.DIR :
+
+                break;
+
+                default : break;
+            }
+        }
+        else if ( idx == _lIDX_ )
+        {
+            _lBTC_ = btch;
+        }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "msg"></param>
+    private static void _mLOD_ ( int idx, Message msg  ) 
+    {
+        bool sndr = msg.Sender == Messager._NAME_;
+
+        if ( sndr || idx == _lIDX_ )
+        {
+            FrameworkElement elmt = ( FrameworkElement )_mTMP_.LoadContent();
+
+            elmt.DataContext = msg;
+
+            _MSGs_.Children.Add( elmt );
+            _SCRL_.UpdateLayout(      );
+
+            if      ( sndr          ) _SCRL_.ScrollToEnd(     );
+            else if (_lBTC_ != null ) _lBTC_!._INCD_    ( msg );
+            else                      _lBTC_ = new      ( msg );
+        }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "cnt"></param>
+    private static void _CNT_  ( int cnt               ) 
+    {
+        _MSGs_.Children.Clear();
+
+        _uIDX_ = cnt - 2;
+        _lIDX_ = cnt - 1;
+
+        Messager.Send( _uIDX_ );
+        Messager.Send( _lIDX_ );
+    }
+
+    #endregion
+    #region PRIVATE  STATIC   FUNCTIONS
+
+    private static void _RFSH_ ( Batch btch ) 
+    {
+        if ( btch == _uBTC_ )
+        {
+            Message? cur = btch.Last;
+
+            while ( cur != null )
+            {
+                FrameworkElement elmt = ( FrameworkElement )_mTMP_.LoadContent();
+
+                elmt.DataContext = cur;
+
+                _MSGs_.Children.Insert( 0, elmt );
+                _SCRL_.UpdateLayout   (         );
+
+                cur = cur._PREV_;
+            }
+        }
+        if ( btch == _lBTC_ )
+        {
+            Message? cur = _lBTC_.First;
+
+            while ( cur != null )
+            {
+                FrameworkElement elmt = ( FrameworkElement )_mTMP_.LoadContent();
+
+                elmt.DataContext = cur;
+
+                _MSGs_.Children.Add( elmt );
+                _SCRL_.UpdateLayout(      );
+
+                cur = cur._NEXT_;
+            }
+            _SCRL_.ScrollToEnd();
+        }
+    }
+
+    #endregion
+    #region PUBLIC   STATIC   FUNCTIONS
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "mPnl"></param>
+    /// <param name = "msgs"></param>
+    /// <param name = "tMsg"></param>
+    /// <returns></returns>
+    public static void Refresh () 
+    {
+        Messager.Request( Messager.COUNT );
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "mPnl"></param>
+    /// <param name = "msgs"></param>
+    /// <param name = "tMsg"></param>
+    /// <param name = "pdng"></param>
+    public static void Render_Upward   ( 
+        int pdng
+    ) {
+        if ( _SCRL_.VerticalOffset > 0 || _lBTC_ == null ) return;
+
+        if ( _bCNT_ == 0 || _uIDX_ <= 0 ) return;
+        
+        for ( int i = 0; i < _lBTC_.Size; i++ ) _MSGs_.Children.RemoveAt( _MSGs_.Children.Count - 1 );
+
+        _lIDX_ = _uIDX_;
+        _uIDX_--       ;
+
+        _lBTC_ = _uBTC_;
+
+        Messager.Send( _uIDX_ );
+
+        if ( _uBTC_ == null ) return;
+        
+        Message? cur = _uBTC_.Last;
+
+        double height = _uBTC_.Size * pdng;
+
+        while ( cur != null )
+        {
+            FrameworkElement elmt = ( FrameworkElement )_mTMP_.LoadContent();
+
+            elmt.DataContext = cur;
+
+            _MSGs_.Children.Insert( 0, elmt );
+            _SCRL_.UpdateLayout   (         );
+
+            height += elmt.ActualHeight;
+            cur     = cur._PREV_       ;
+        }
+        _SCRL_.ScrollToVerticalOffset( _SCRL_.VerticalOffset + height );
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "mPnl"></param>
+    /// <param name = "msgs"></param>
+    /// <param name = "tMsg"></param>
+    /// <param name = "pdng"></param>
+    public static void Render_Downward ( 
+        int          pdng
+    ) {
+        if ( _SCRL_.VerticalOffset < _SCRL_.ScrollableHeight || _uBTC_ == null ) return;
+
+        if ( _bCNT_ == 0 || _lIDX_ >= _bCNT_ - 1 ) return;
+        
+        double height = _uBTC_.Size * pdng;
+
+        for ( int i = 0; i < _uBTC_.Size; i++ )
+        {
+            FrameworkElement elmt = ( FrameworkElement )_MSGs_.Children[ 0 ];
+
+            height += elmt.ActualHeight;
+
+            _MSGs_.Children.RemoveAt( 0 );
+        }
+        _uIDX_ = _lIDX_;
+        _lIDX_++       ;
+
+        _uBTC_ = _lBTC_;
+
+        Messager.Send( _lIDX_ );
+
+        if ( _lBTC_ == null ) return;
+        
+        Message? cur = _lBTC_.First;
+
+        while ( cur != null )
+        {
+            FrameworkElement elmt = ( FrameworkElement )_mTMP_.LoadContent();
+
+            elmt.DataContext = cur;
+
+            _MSGs_.Children.Add( elmt );
+            _SCRL_.UpdateLayout(      );
+
+            cur = cur._NEXT_;
+        }
+        _SCRL_.ScrollToVerticalOffset( _SCRL_.VerticalOffset - height );
+    }
+
+    #endregion
+}
+
+// SEALED CLASSES //
 
 /// <summary>
 /// 
@@ -627,319 +904,6 @@ public sealed class Batch
             return;
         }
         if ( _BATCHES_[ bIdx ].Size == 0 ) _BATCHES_.RemoveAt( bIdx );
-    }
-
-    #endregion
-}
-
-/// <summary>
-/// 
-/// </summary>
-public static class Renderer 
-{
-    #region PRIVATE  INSTANCE FIELDS
-
-    private static int    _uIDX_ = -1     ; // The Upper Renderable Batch Index.
-    private static int    _lIDX_ =  0     ; // The Lower Renderable Batch Index.
-
-    private static Batch? _uBTC_ = null!  ; // The Upper Renderable Batch Object.
-    private static Batch? _lBTC_ = null!  ; // The Lower Renderable Batch Object.
-
-    #endregion
-
-    #region PUBLIC   STATIC   INITIALIZERS
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name = "mPnl"></param>
-    /// <param name = "msgs"></param>
-    /// <param name = "tMsg"></param>
-    public static void Initialize (
-        ScrollViewer mPnl, 
-        StackPanel   msgs, 
-        DataTemplate tMsg
-    ) {
-        Messager.Bind( Batch   );
-        Messager.Bind( Message );
-        Messager.Bind( Count   );
-
-        Refresh( mPnl, msgs, tMsg );
-    }
-
-    #endregion
-    #region PRIVATE  STATIC   MODIFIERS
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name = "idx"></param>
-    /// <param name = "btch"></param>
-    private static void Batch   ( int     idx, Batch btch ) 
-    {
-        if      ( idx == _uIDX_ ) 
-        {
-            _uBTC_ = btch;
-        }
-        else if ( idx == _lIDX_ )
-        {
-            _lBTC_ = btch;
-        }
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name = "msg"></param>
-    private static void Message ( Message msg             ) 
-    {
-
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name = "cnt"></param>
-    private static void Count   ( int     cnt             )
-    {
-
-    }
-
-    #endregion
-    #region PUBLIC   STATIC   FUNCTIONS
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name = "mPnl"></param>
-    /// <param name = "msgs"></param>
-    /// <param name = "tMsg"></param>
-    public static void Render_Next     (
-        ScrollViewer mPnl, 
-        StackPanel   msgs, 
-        DataTemplate tMsg 
-    ) {
-        if ( Messager.Count == 0 || _lIDX_ != Messager.Size - 1 ) return;
-
-        FrameworkElement elmt = ( FrameworkElement )tMsg.LoadContent();
-
-        Message msg = Messager.Deferred_Fetch_Message();
-
-        elmt.DataContext = msg;
-
-        msgs.Children.Add( elmt );
-        mPnl.UpdateLayout(      );
-
-        if ( msg.Sender == Messager._NAME_ ) mPnl.ScrollToEnd();
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name = "mPnl"></param>
-    /// <param name = "msgs"></param>
-    /// <param name = "tMsg"></param>
-    /// <returns></returns>
-    public static bool Refresh         (
-        ScrollViewer mPnl, 
-        StackPanel   msgs, 
-        DataTemplate tMsg 
-    ) {
-        if ( !_RFSH_ ) return false;
-
-        _RFSH_ = true;
-
-        int size = Messager.Size;
-
-        if ( _lIDX_ >= size - 1 ) return false;
-
-        bool rslt = false;
-
-        msgs.Children.Clear();
-
-        _uIDX_ = size - 2;
-        _lIDX_ = size - 1;
-
-        if ( _uBTC_ != null )
-        {
-            Message? cur = _uBTC_.First;
-
-            while ( cur != null )
-            {
-                FrameworkElement elmt = ( FrameworkElement )tMsg.LoadContent();
-
-                elmt.DataContext = cur;
-
-                msgs.Children.Add( elmt );
-                mPnl.UpdateLayout(      );
-
-                cur = cur._NEXT_;
-            }
-            rslt = true;
-        }
-        if ( _lBTC_ != null )
-        {
-            Message? cur = _lBTC_.First;
-
-            while ( cur != null )
-            {
-                FrameworkElement elmt = ( FrameworkElement )tMsg.LoadContent();
-
-                elmt.DataContext = cur;
-
-                msgs.Children.Add( elmt );
-                mPnl.UpdateLayout(      );
-
-                cur = cur._NEXT_;
-            }
-            mPnl.ScrollToEnd();
-
-            rslt = true;
-        }
-        _RFSH_ = false;
-
-        return rslt;
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name = "mPnl"></param>
-    /// <param name = "msgs"></param>
-    /// <param name = "tMsg"></param>
-    /// <param name = "pdng"></param>
-    public static void Render_Upward   ( 
-        ScrollViewer mPnl, 
-        StackPanel   msgs, 
-        DataTemplate tMsg,
-        int          pdng
-    ) {
-        if ( !( _RFSH_ || _LOAD_ == 1 ) || mPnl.VerticalOffset > 0 || _lBTC_ == null ) return;
-
-        _LOAD_ = 1;
-
-        int size = Messager.Size;
-
-        if ( size == 0 || _uIDX_ <= 0 )
-        {
-            _LOAD_ = 0;
-
-            return;
-        }
-        for ( int i = 0; i < _lBTC_.Size; i++ ) msgs.Children.RemoveAt( msgs.Children.Count - 1 );
-
-        _lPRV_ = _lIDX_;
-        _lIDX_ = _uIDX_;
-
-        _uPRV_ = _uIDX_;
-        _uIDX_--       ;
-
-        _lBTC_ = _uBTC_;
-
-        Messager.Send( _uIDX_ );
-
-        Retry rt = new ();
-
-        rt.Attempt_Async( () => _uPRV_ == _uIDX_ ).GetAwaiter().GetResult();
-
-        if ( _uBTC_ == null )
-        {
-            _LOAD_ = 0;
-
-            return;
-        }
-        Message? cur = _uBTC_.Last;
-
-        double height = _uBTC_.Size * pdng;
-
-        while ( cur != null )
-        {
-            FrameworkElement elmt = ( FrameworkElement )tMsg.LoadContent();
-
-            elmt.DataContext = cur;
-
-            msgs.Children.Insert( 0, elmt );
-            mPnl.UpdateLayout   (         );
-
-            height += elmt.ActualHeight;
-            cur     = cur._PREV_       ;
-        }
-        mPnl.ScrollToVerticalOffset( mPnl.VerticalOffset + height );
-
-        _LOAD_ = 0;
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name = "mPnl"></param>
-    /// <param name = "msgs"></param>
-    /// <param name = "tMsg"></param>
-    /// <param name = "pdng"></param>
-    public static void Render_Downward ( 
-        ScrollViewer mPnl, 
-        StackPanel   msgs, 
-        DataTemplate tMsg,
-        int          pdng
-    ) {
-        if ( !( _RFSH_ || _LOAD_ == -1 ) || mPnl.VerticalOffset < mPnl.ScrollableHeight || _uBTC_ == null ) return;
-
-        _LOAD_ = -1;
-
-        int size = Messager.Size;
-
-        if ( size == 0 || _lIDX_ >= size - 1 )
-        {
-            _LOAD_ = 0;
-
-            return;
-        }
-        double height = _uBTC_.Size * pdng;
-
-        for ( int i = 0; i < _uBTC_.Size; i++ )
-        {
-            FrameworkElement elmt = ( FrameworkElement )msgs.Children[ 0 ];
-
-            height += elmt.ActualHeight;
-
-            msgs.Children.RemoveAt( 0 );
-        }
-        _uPRV_ = _uIDX_;
-        _uIDX_ = _lIDX_;
-
-        _lPRV_ = _lIDX_;
-        _lIDX_++       ;
-
-        _uBTC_ = _lBTC_;
-
-        Messager.Send( _lIDX_ );
-
-        Retry rt = new ();
-
-        rt.Attempt_Async( () => _lPRV_ == _lIDX_ ).GetAwaiter().GetResult();
-
-        if ( _lBTC_ == null )
-        {
-            _LOAD_ = 0;
-
-            return;
-        }
-        Message? cur = _lBTC_.First;
-
-        while ( cur != null )
-        {
-            FrameworkElement elmt = ( FrameworkElement )tMsg.LoadContent();
-
-            elmt.DataContext = cur;
-
-            msgs.Children.Add( elmt );
-            mPnl.UpdateLayout(      );
-
-            cur = cur._NEXT_;
-        }
-        mPnl.ScrollToVerticalOffset( mPnl.VerticalOffset - height );
-
-        _LOAD_ = 0;
     }
 
     #endregion

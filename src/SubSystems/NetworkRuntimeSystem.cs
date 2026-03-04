@@ -1,6 +1,6 @@
 ﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED   : 2/23/2026 16:37
+/// UPDATED   : 3/03/2026 12:44
 /// 
 /// REMAINING : FINISHED ( SUBJECT TO UPDATE )
 
@@ -20,6 +20,8 @@ using LanChat.SubSystem.Serialization;
 
 namespace LanChat.SubSystem.Network.Runtime;
 
+// ABSTRACT CLASSES //
+
 /// <summary>
 /// 
 /// </summary>
@@ -32,31 +34,21 @@ internal abstract class rtEntity
     #endregion
     #region PROTECTED INSTANCE FIELDS
 
-    protected UdpClient? _DTGM_ = null         ;
-    protected Sync       _SYNC_ = new()        ;
-
-    protected uint       _ATCR_ = uint.MinValue;
-
-    #endregion
-
-    #region INTERNAL  INSTANCE COMPUTED
-
-    /// <summary>
-    /// 
-    /// </summary>
-    internal uint Authenticator => this._ATCR_;
+    protected UdpClient? _DTGM_ = null ;
+    protected Sync       _SYNC_ = new();
 
     #endregion
 
     #region INTERNAL  ABSTRACT FUNCTIONS
 
-    internal abstract void      _AUTH_ ();
     internal abstract void      _STRT_ ();
     internal abstract void      _STOP_ ();
     internal abstract DateTime? _TIME_ ();
 
     #endregion
 }
+
+// SEALED CLASSES //
 
 /// <summary>
 /// 
@@ -82,16 +74,6 @@ internal sealed   class rtClient : rtEntity
     #endregion
 
     #region INTERNAL OVERRIDE FUNCTIONS
-
-    /// <summary>
-    /// 
-    /// </summary>
-    internal override void      _AUTH_ () 
-    {
-        if ( this._ATCR_ != uint.MinValue ) return;
-
-        this._ATCR_ = ( uint )( new Random().NextInt64( 1, 10 ) );
-    }
 
     /// <summary>
     /// 
@@ -374,16 +356,6 @@ internal sealed   class rtServer : rtEntity
     #endregion
 
     #region INTERNAL OVERRIDE FUNCTIONS
-
-    /// <summary>
-    /// 
-    /// </summary>
-    internal override void      _AUTH_ () 
-    {
-        if ( this._ATCR_ != uint.MinValue ) return;
-
-        this._ATCR_ = ( uint )( new Random().NextInt64( 4000000000, uint.MaxValue ) );
-    }
 
     /// <summary>
     /// 

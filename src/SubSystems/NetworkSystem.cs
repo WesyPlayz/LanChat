@@ -1,6 +1,6 @@
 ﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED   : 2/23/2026 14:55
+/// UPDATED   : 3/03/2026 12:30
 ///
 /// REMAINING :
 ///     Client   CLASS
@@ -20,155 +20,19 @@ using LanChat.SubSystem.Network.Runtime;
 
 namespace LanChat.SubSystem.Network;
 
-public interface iEntity;
-
-public sealed class Client   : iEntity
-{
-    #region INTERNAL PROPERTIES
-
-    internal TcpClient _CONNECTION_ { get; private set; }
-    internal NetworkStream _STRM_ { get; private set; }
-    internal byte[]        bffr = new byte[ 1024 ] ;
-    internal bool _ACTV_ = false;
-
-    #endregion
-
-    public bool Active => this._ACTV_;
-
-    internal Client ( TcpClient connection )
-    {
-        this._CONNECTION_ = connection            ;
-        this._STRM_       = connection.GetStream();
-    }
-    /*
-    internal uint      _PASSWORD_   { get; private set; } = uint.MinValue;
-
-    #endregion
-    #region PRIVATE  PROPERTIES
-
-    private uint _ROLE_; // TODO;
-
-    #endregion
-    #region PUBLIC   PROPERTIES
-
-    public uint Username { get; private set; } = uint.MinValue;
-    public int  tOffset  { get;         set; }
-
-    #endregion
-    #region INTERNAL CONSTRUCTOR
-
-    /// <summary>
-    /// Description :
-    ///     Initializes the client with a connection.
-    /// </summary>
-    /// <param name="iID"></param>
-    /// <param name="connection"></param>
-    internal Client ( uint iID, TcpClient connection ) 
-    {
-        if ( iID != Bridge._AUTHENTICATOR_ ) return;
-
-        this._CONNECTION_ = connection ;
-    }
-
-    #endregion
-    #region PUBLIC   CONSTRUCTOR
-
-    /// <summary>
-    /// Description :
-    ///     Initializes the client with a username and password.
-    /// </summary>
-    /// <param name="iID"></param>
-    /// <param name="username"></param>
-    /// <param name="password"></param>
-    public Client ( uint iID, uint username, uint password ) 
-    {
-        this._CONNECTION_ = null               ;
-
-        this.Username     = username           ;
-
-        this.Set_Password( iID, uint.MinValue, password );
-    }
-
-    #endregion
-    #region PRIVATE  SECURITY
-
-    /// <summary>
-    /// Description :
-    ///     Encrypts the given value using a hash operation.
-    /// </summary>
-    /// <param name="password"></param>
-    /// <returns></returns>
-    private static uint Encrypt ( uint password ) 
-    {
-        // TODO;
-
-        return uint.MinValue; // TEMP
-    }
-
-    #endregion
-    #region INTERNAL ACCESSORS
-
-    /// <summary>
-    /// Description :
-    ///     Sets the password of the client if given the correct authenticator code and password.
-    /// </summary>
-    /// <param name="iID"></param>
-    /// <param name="password"></param>
-    /// <param name="npassword"></param>
-    internal void Set_Password ( uint iID, uint password, uint npassword ) 
-    {
-        this._PASSWORD_ = (
-            this.Is_Password( iID, password ) ? Encrypt( password ) : 
-            this._PASSWORD_ 
-        );
-    }
-
-    /// <summary>
-    /// Description :
-    ///     Verifies whether the password is the client password if given the correct authenticator code.
-    /// </summary>
-    /// <param name="iID"></param>
-    /// <returns></returns>
-    internal bool Is_Password( uint iID, uint password )
-    {
-        if (iID != Bridge._AUTHENTICATOR_ || Encrypt( password ) != this._PASSWORD_ ) return false;
-        return true;
-    }
-
-    /// <summary>
-    /// Description :
-    ///     Sets the username of the client if given the correct authenticator code and password.
-    /// </summary>
-    /// <param name = "iID"></param>
-    /// <param name = "password"></param>
-    /// <param name = "username"></param>
-    internal void Set_Username ( uint iID, uint password, uint username  ) 
-    {
-        if ( iID != Bridge._AUTHENTICATOR_ || password != this._PASSWORD_ ) return;
-
-        this.Username = username;
-    }
-
-    #endregion
-    */
-}
-
-public sealed class Server   ( string ip, int port ) : iEntity
-{
-    public string Name { get; private set; } = "Server";
-    public string Ip   { get; private set; } = ip      ;
-    public int    Port { get; private set; } = port    ;
-
-    public override bool Equals      ( object? obj ) => obj is Server serv && this.Ip == serv.Ip && this.Port == serv.Port;
-    public override int  GetHashCode (             ) => HashCode.Combine( this.Ip, this.Port );
-
-    public override string ToString ( ) => $"{ this.Ip } : { this.Port }";
-}
+// INTERFACES //
 
 /// <summary>
 /// 
 /// </summary>
-public sealed class Bridge   
+public        interface iEntity;
+
+// STATIC CLASSES //
+
+/// <summary>
+/// 
+/// </summary>
+public static class     Bridge   
 {
     #region PUBLIC   ENUMS
 
@@ -406,7 +270,163 @@ public sealed class Bridge
     #endregion
 }
 
-public sealed class Renderer 
+/// <summary>
+/// 
+/// </summary>
+public static class     Renderer 
 {
 
+}
+
+// SEALED CLASSES //
+
+/// <summary>
+/// 
+/// </summary>
+public sealed class     Client   : iEntity
+{
+    #region INTERNAL PROPERTIES
+
+    internal TcpClient _CONNECTION_ { get; private set; }
+    internal NetworkStream _STRM_ { get; private set; }
+    internal byte[]        bffr = new byte[ 1024 ] ;
+    internal bool _ACTV_ = false;
+
+    #endregion
+
+    public bool Active => this._ACTV_;
+
+    internal Client ( TcpClient connection )
+    {
+        this._CONNECTION_ = connection            ;
+        this._STRM_       = connection.GetStream();
+    }
+    /*
+    internal uint      _PASSWORD_   { get; private set; } = uint.MinValue;
+
+    #endregion
+    #region PRIVATE  PROPERTIES
+
+    private uint _ROLE_; // TODO;
+
+    #endregion
+    #region PUBLIC   PROPERTIES
+
+    public uint Username { get; private set; } = uint.MinValue;
+    public int  tOffset  { get;         set; }
+
+    #endregion
+    #region INTERNAL CONSTRUCTOR
+
+    /// <summary>
+    /// Description :
+    ///     Initializes the client with a connection.
+    /// </summary>
+    /// <param name="iID"></param>
+    /// <param name="connection"></param>
+    internal Client ( uint iID, TcpClient connection ) 
+    {
+        if ( iID != Bridge._AUTHENTICATOR_ ) return;
+
+        this._CONNECTION_ = connection ;
+    }
+
+    #endregion
+    #region PUBLIC   CONSTRUCTOR
+
+    /// <summary>
+    /// Description :
+    ///     Initializes the client with a username and password.
+    /// </summary>
+    /// <param name="iID"></param>
+    /// <param name="username"></param>
+    /// <param name="password"></param>
+    public Client ( uint iID, uint username, uint password ) 
+    {
+        this._CONNECTION_ = null               ;
+
+        this.Username     = username           ;
+
+        this.Set_Password( iID, uint.MinValue, password );
+    }
+
+    #endregion
+    #region PRIVATE  SECURITY
+
+    /// <summary>
+    /// Description :
+    ///     Encrypts the given value using a hash operation.
+    /// </summary>
+    /// <param name="password"></param>
+    /// <returns></returns>
+    private static uint Encrypt ( uint password ) 
+    {
+        // TODO;
+
+        return uint.MinValue; // TEMP
+    }
+
+    #endregion
+    #region INTERNAL ACCESSORS
+
+    /// <summary>
+    /// Description :
+    ///     Sets the password of the client if given the correct authenticator code and password.
+    /// </summary>
+    /// <param name="iID"></param>
+    /// <param name="password"></param>
+    /// <param name="npassword"></param>
+    internal void Set_Password ( uint iID, uint password, uint npassword ) 
+    {
+        this._PASSWORD_ = (
+            this.Is_Password( iID, password ) ? Encrypt( password ) : 
+            this._PASSWORD_ 
+        );
+    }
+
+    /// <summary>
+    /// Description :
+    ///     Verifies whether the password is the client password if given the correct authenticator code.
+    /// </summary>
+    /// <param name="iID"></param>
+    /// <returns></returns>
+    internal bool Is_Password( uint iID, uint password )
+    {
+        if (iID != Bridge._AUTHENTICATOR_ || Encrypt( password ) != this._PASSWORD_ ) return false;
+        return true;
+    }
+
+    /// <summary>
+    /// Description :
+    ///     Sets the username of the client if given the correct authenticator code and password.
+    /// </summary>
+    /// <param name = "iID"></param>
+    /// <param name = "password"></param>
+    /// <param name = "username"></param>
+    internal void Set_Username ( uint iID, uint password, uint username  ) 
+    {
+        if ( iID != Bridge._AUTHENTICATOR_ || password != this._PASSWORD_ ) return;
+
+        this.Username = username;
+    }
+
+    #endregion
+    */
+}
+
+/// <summary>
+/// 
+/// </summary>
+/// <param name="ip"></param>
+/// <param name="port"></param>
+public sealed class     Server   ( string ip, int port ) : iEntity
+{
+    public string Name { get; private set; } = "Server";
+    public string Ip   { get; private set; } = ip      ;
+    public int    Port { get; private set; } = port    ;
+
+    public override bool Equals      ( object? obj ) => obj is Server serv && this.Ip == serv.Ip && this.Port == serv.Port;
+    public override int  GetHashCode (             ) => HashCode.Combine( this.Ip, this.Port );
+
+    public override string ToString ( ) => $"{ this.Ip } : { this.Port }";
 }

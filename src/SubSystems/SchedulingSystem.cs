@@ -1,10 +1,12 @@
 ﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED   : 2/23/2026 16:28
+/// UPDATED   : 3/03/2026 12:36
 /// 
 /// REMAINING : FINISHED ( SUBJECT TO UPDATE )
 
 namespace LanChat.SubSystem.Scheduling;
+
+// STATIC CLASSES //
 
 /// <summary>
 /// 
@@ -27,6 +29,8 @@ public static class  Time
 
     #endregion
 }
+
+// STRUCTS //
 
 /// <summary>
 /// 

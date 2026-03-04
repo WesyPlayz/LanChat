@@ -14,10 +14,11 @@ using System.Windows.Controls;
 #endregion
 #region LANCHAT HEADER
 
-using LanChat.SubSystem.Core;
+using LanChat.SubSystem.Scheduling;
 using LanChat.SubSystem.Network;
 using LanChat.SubSystem.Messaging;
 using LanChat.SubSystem.UserInterface;
+using LanChat.SubSystem.Debugging;
 
 #endregion
 
@@ -51,10 +52,6 @@ public partial class App : Application
     public bool canRUN = false;
 
     #endregion
-
-    [DllImport("kernel32.dll")]
-    static extern bool AllocConsole();
-
 
     // CONSTRUCTORS //
 
@@ -94,7 +91,7 @@ public partial class App : Application
 
         win?.Close();
 
-        AllocConsole();
+        Debug.AllocConsole();
 
         this.InitWindow = new ( this );
 
