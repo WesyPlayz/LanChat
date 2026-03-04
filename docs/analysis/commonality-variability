@@ -12,10 +12,10 @@
 ## Relative Code
 
 Messager Class :
-https://github.com/WesyPlayz/LanChat/blob/WesyPlayz-patch-3/src/SubSystems/MessagingSystem.cs
+[ MessagingSystem ](https://github.com/WesyPlayz/LanChat/blob/WesyPlayz-patch-3/src/SubSystems/MessagingSystem.cs)
 
 Bridge Class :
-https://github.com/WesyPlayz/LanChat/blob/WesyPlayz-patch-3/src/SubSystems/NetworkSystem.cs
+[ NetworkSystem ](https://github.com/WesyPlayz/LanChat/blob/WesyPlayz-patch-3/src/SubSystems/NetworkSystem.cs)
 
 - Batch size.
   - Why it may change  : Some devices need more optimization to occomodate for them.
@@ -24,7 +24,7 @@ https://github.com/WesyPlayz/LanChat/blob/WesyPlayz-patch-3/src/SubSystems/Netwo
 ## Relative Code
 
 Batch Class :
-https://github.com/WesyPlayz/LanChat/blob/WesyPlayz-patch-3/src/SubSystems/MessagingSystem.cs
+[ MessagingSystem ](https://github.com/WesyPlayz/LanChat/blob/WesyPlayz-patch-3/src/SubSystems/MessagingSystem.cs)
 
 - Batching technique.
   - Why it may change  : Some batch loading techniques might be more optimal for performance than the current.
