@@ -1,6 +1,6 @@
 ﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED   : 2/23/2026 01:19
+/// UPDATED   : 3/03/2026 12:35
 /// 
 /// REMAINING : PARTIAL ( SUBJECT TO FILL )
 
@@ -12,10 +12,12 @@ using System.Windows.Input;
 
 namespace LanChat.SubSystem.Input;
 
+// SEALED CLASSES //
+
 /// <summary>
 /// 
 /// </summary>
-public class Listener 
+public sealed class Listener 
 {
     #region PRIVATE INSTANCE FIELDS
 

@@ -1,0 +1,31 @@
+# Commonality and Variability Analysis
+
+## Commonalities
+- Messages live in batches.
+- Messages can be sent and recieved.
+
+## Variabilities
+- Deleting and editing messages.
+  - Why it may change    User's may want to be able to fix errors or retype certain parts of their messages, or remove them altogether.
+  - How it is isolated : Bridge dispatching is event based and new constants can be made to accomodate specific operations on messages.
+
+## Relative Code
+
+Messager Class :
+[MessagingSystem](https://github.com/WesyPlayz/LanChat/blob/WesyPlayz-patch-3/src/SubSystems/MessagingSystem.cs)
+
+Bridge Class :
+[NetworkSystem](https://github.com/WesyPlayz/LanChat/blob/WesyPlayz-patch-3/src/SubSystems/NetworkSystem.cs)
+
+- Batch size.
+  - Why it may change  : Some devices need more optimization to occomodate for them.
+  - How it is isolated : A variable handles all batch sizing that can be changed via the server side admin.
+
+## Relative Code
+
+Batch Class :
+[MessagingSystem](https://github.com/WesyPlayz/LanChat/blob/WesyPlayz-patch-3/src/SubSystems/MessagingSystem.cs)
+
+- Batching technique.
+  - Why it may change  : Some batch loading techniques might be more optimal for performance than the current.
+  - How it is isolated : There are dedicated functions for each type of batch loading operation, an enum helps change the state of the system based on input.

@@ -6,18 +6,15 @@
 
 #region GENERAL HEADER
 
-using System.Runtime.InteropServices;
-
 using System.Windows;
-using System.Windows.Controls;
 
 #endregion
 #region LANCHAT HEADER
 
-using LanChat.SubSystem.Core;
 using LanChat.SubSystem.Network;
 using LanChat.SubSystem.Messaging;
 using LanChat.SubSystem.UserInterface;
+using LanChat.SubSystem.Debugging;
 
 #endregion
 
@@ -46,15 +43,6 @@ public partial class App : Application
     internal TermWindow TermWindow { get; set; }
 
     #endregion
-    #region PRIVATE   STATIC   PROPERTIES
-
-    public bool canRUN = false;
-
-    #endregion
-
-    [DllImport("kernel32.dll")]
-    static extern bool AllocConsole();
-
 
     // CONSTRUCTORS //
 
@@ -94,7 +82,7 @@ public partial class App : Application
 
         win?.Close();
 
-        AllocConsole();
+        Debug.AllocConsole();
 
         this.InitWindow = new ( this );
 
@@ -158,59 +146,6 @@ public partial class App : Application
             default                 :                  break;
         }
     }
-
-    #endregion
-    #region INTERNAL  INSTANCE BRIDGE  MANAGEMENT
-
-    /*
-    internal Server   _DCVR_  ()
-    {
-
-    }
-    */
-
-    private Sync _SYNC_ = new();
-
-    internal void _SRCH_()
-    {
-        _SYNC_.Close();
-    }
-
-    internal void _SRCH_(ScrollViewer scrl, StackPanel srvs, DataTemplate serv)
-    {
-        _SYNC_.Start();
-        
-        Task.Run(async () =>
-        {
-            while ( _SYNC_.Continue )
-            {
-                iEntity[]? cServs = Bridge.Get();
-
-                srvs.Dispatcher.Invoke(() =>
-                {
-                    srvs.Children.Clear();
-
-                    if (cServs != null)
-                    {
-                        foreach (Server iServ in cServs)
-                        {
-                            Console.WriteLine(iServ.ToString());
-                            FrameworkElement s = (FrameworkElement)serv.LoadContent();
-
-                            s.DataContext = iServ;
-
-                            srvs.Children.Add(s);
-                            scrl.UpdateLayout();
-                        }
-                    }
-                });
-
-                await Task.Delay(5000);
-            }
-            _SYNC_.Stop();
-        });
-    }
-
 
     #endregion
 }

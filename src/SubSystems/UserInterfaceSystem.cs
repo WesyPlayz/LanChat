@@ -1,8 +1,9 @@
 ﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED   : 2/22/2026 23:45
+/// UPDATED   : 3/03/2026 12:37
 /// 
-/// REMAINING : FINISHED ( SUBJECT TO UPDATES )
+/// REMAINING : 
+///     Terminal_Page CLASS
 
 #region GENERAL HEADER
 
@@ -19,10 +20,19 @@ using System.Windows.Media.Effects;
 
 namespace LanChat.SubSystem.UserInterface;
 
+// INTERFACES //
+
 /// <summary>
 /// 
 /// </summary>
-public static class     Prefabs    
+public        interface uiPage {}
+
+// STATIC CLASSES //
+
+/// <summary>
+/// 
+/// </summary>
+public static class     Prefabs       
 {
     #region PRIVAATE STATIC PROPERTIES
 
@@ -134,10 +144,15 @@ public static class     Prefabs
     #endregion
 }
 
+// SEALED CLASSES //
+
 /// <summary>
 /// 
 /// </summary>
-public        interface uiPage {}
+public sealed class     Terminal_Page 
+{
+
+}
 
 /// <summary>
 /// 
@@ -145,7 +160,7 @@ public        interface uiPage {}
 /// <param name = "inpt"></param>
 /// <param name = "scrl"></param>
 /// <param name = "srvs"></param>
-public sealed class     Login_Page (
+public sealed class     Login_Page    (
     TextBox      inpt = null!,
     ScrollViewer scrl = null!,
     StackPanel   srvs = null!
@@ -173,7 +188,7 @@ public sealed class     Login_Page (
 /// <param name = "msgs"></param>
 /// <param name = "actv"></param>
 /// <param name = "inac"></param>
-public sealed class     Chat_Page  (
+public sealed class     Chat_Page     (
     TextBox      inpt = null!,
     ScrollViewer scrl = null!,
     StackPanel   msgs = null!,

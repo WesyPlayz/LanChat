@@ -20,7 +20,6 @@ using System.Windows.Media.Effects;
 #region LANCHAT HEADER
 
 using LanChat.SubSystem.Input;
-using LanChat.SubSystem.Messaging;
 using LanChat.SubSystem.UserInterface;
 
 #endregion
@@ -88,7 +87,7 @@ public partial class MainWindow : Window
     {
         this.Screen_Space.Child = null;
 
-        Login_Page flip = new                                                                ();  
+        Login_Page flip = new                                                                   ();  
 
         Grid       lipg = ( Grid    )this._lTMP_.LoadContent                                    ();
         Border?    hedr = ( Border? )Prefabs.Get_Template( "Header"               )?.LoadContent();
@@ -157,7 +156,12 @@ public partial class MainWindow : Window
 
                 StackPanel?   srvs = ( StackPanel? )svwd.FindName( "Elements" ) ;
 
-                if ( srvs != null ) flip.Servers = srvs;
+                if ( srvs != null ) 
+                {
+                    flip.Servers = srvs;
+
+                    SubSystem.Network.Renderer.Initialize( scrl, srvs, Login_Page.Server );
+                }
             }
             if ( ttle != null ) ttle!.Text = "Servers";
             if ( ippl != null )
@@ -185,7 +189,7 @@ public partial class MainWindow : Window
             ( Key.Enter, [ this.Discover ] ),
             ( Key.Tab  , [ this.Tab      ] )
         ]);
-        this._SRCH_ ( true );
+        SubSystem.Network.Renderer.Start();
     }
 
     /// <summary>
@@ -193,8 +197,6 @@ public partial class MainWindow : Window
     /// </summary>
     internal void _cINIT_ () 
     {
-        this._SRCH_ ( false );
-
         this.Screen_Space.Child = null;
         
         Chat_Page     fctp = new                                                                         ();
@@ -294,6 +296,8 @@ public partial class MainWindow : Window
                 mgwd.Children.Add( ippl );
             }
             ctpg.Children.Add( mgwd );
+
+            SubSystem.Messaging.Renderer.Initialize( scrl, msgs, Chat_Page.Message );
         }
         this.Screen_Space.Child = ctpg;
         this._PAGE_             = fctp;
@@ -390,14 +394,16 @@ public partial class MainWindow : Window
         if ( !this._CYCL_ && this._PAGE_ is Chat_Page ctpg && !string.IsNullOrWhiteSpace( ctpg.Input.Text ) )
         {
             this._CYCL_ = true;
+            
+            SubSystem.Messaging.Messager.Send( ctpg.Input.Text );
+            ctpg.Input.Clear                 (                 );
 
-            Messager.Send   ( ctpg.Input.Text );
-            ctpg.Input.Clear(                 );
-
-            if ( !Renderer.Refresh( ctpg.Scroll_Space, ctpg.Messages, Chat_Page.Message ) )
+            /*
+            if ( !SubSystem.Messaging.Renderer.Refresh( ctpg.Scroll_Space, ctpg.Messages, Chat_Page.Message ) )
             {
-                Renderer.Render_Next( ctpg.Scroll_Space, ctpg.Messages, Chat_Page.Message );
+                SubSystem.Messaging.Renderer.Render_Next( ctpg.Scroll_Space, ctpg.Messages, Chat_Page.Message );
             }
+            */
             this._CYCL_ = false;
         }
     }
@@ -447,24 +453,11 @@ public partial class MainWindow : Window
         {
             this._CYCL_ = true;
 
-            Renderer.Render_Upward  ( ctpg.Scroll_Space, ctpg.Messages, Chat_Page.Message, 20 );
-            Renderer.Render_Downward( ctpg.Scroll_Space, ctpg.Messages, Chat_Page.Message, 20 );
+            //SubSystem.Messaging.Renderer.Render_Upward  ( ctpg.Scroll_Space, ctpg.Messages, Chat_Page.Message, 20 );
+            //SubSystem.Messaging.Renderer.Render_Downward( ctpg.Scroll_Space, ctpg.Messages, Chat_Page.Message, 20 );
         
             this._CYCL_ = false;
         }
-    }
-
-    #endregion
-    #region PRIVATE  INSTANCE FUNCTIONS
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name = "stat"></param>
-    private void _SRCH_ ( bool stat ) 
-    {
-        if   ( stat && this._PAGE_ is Login_Page lgpg ) this._APP_._SRCH_( lgpg.Scroll_Space, lgpg.Servers, Login_Page.Server );
-        else                                            this._APP_._SRCH_(                                                    );
     }
 
     #endregion
