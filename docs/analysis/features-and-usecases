@@ -1,0 +1,66 @@
+# Features and Use Cases
+
+## Features
+- Choose between Server Runtime, Local Host Runtime, and Client Runtime.
+- Initialize server using a password and port.
+- Log in using a username and password.
+- Shut down server.
+- Log out.
+- Send messages.
+- Receive messages.
+
+## Brief Use Cases
+
+### UC1 : Choose Server
+- Primary Actor: User
+- Goal: Host a chat group.
+
+### UC2 : Choose Local Host
+- Primary Actor: User
+- Goal: Host and participate in a chat group.
+
+### UC3 : Choose Client
+- Primary Actor: User
+- Goal: Participate in a chat group.
+
+### UC4 : Start Server
+- Primary Actor: Administrator
+- Goal: Allow clients to connect.
+
+### UC5 : Log In
+- Primary Actor: User
+- Goal: Join a server.
+
+### UC6 : Shutdown Server
+- Primary Actor: Adminstrator
+- Goal: Close out chat group and disconnect clients.
+
+### UC7 : Log Out
+- Primary Actor: User
+- Goal: Disconnect from server.
+
+### UC8 : Send Message
+- Primary Actor: User
+- Goal: Talk to other users.
+
+### UC9 : Receive Message
+- Primary Actor: User
+- Goal: Read what other users say.
+
+## Use Case Traceability
+
+|         Use Cases       | Feature(s) |
+|-------------------------|------------|
+| UC1 : Choose Server     | Feature 1  |
+| UC2 : Choose Local Host | Feature 1  |
+| UC3 : Choose Client     | Feature 1  |
+| UC4 : Start Server      | Feature 2  |
+| UC5 : Log In            | Feature 3  |
+| UC6 : Shutdown Server   | Feature 4  |
+| UC7 : Log Out           | Feature 5  |
+| UC8 : Send Message      | Feature 6  |
+| UC9 : Receive Message   | Feature 7  |
+
+## Use Case Diagram
+
+![Use Case Diagram](use-case-diagram.png)

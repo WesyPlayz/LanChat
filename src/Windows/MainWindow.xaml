@@ -1,0 +1,71 @@
+﻿<Window 
+    x:Class            = "LanChat.Runtime.MainWindow"
+    
+    xmlns              = "http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x            = "http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d            = "http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc           = "http://schemas.openxmlformats.org/markup-compatibility/2006"
+
+    xmlns:local        = "clr-namespace:LanChat.Runtime"
+    mc:Ignorable       = "d"
+    
+    Title              = "LanChat Interface" 
+    
+    Height             = "500" 
+    Width              = "900"
+    
+    MinHeight          = "500"
+    MinWidth           = "900"
+>
+    <Window.Resources>
+        <DataTemplate x:Key = "Login_Page">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height = "5" />
+                    <RowDefinition Height = "30"/>
+                    <RowDefinition Height = "5" />
+                    <RowDefinition Height = "*" />
+                    <RowDefinition Height = "5" />
+                    <RowDefinition Height = "5" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width = "5"/>
+                    <ColumnDefinition Width = "5"/>
+                    <ColumnDefinition Width = "*"/>
+                    <ColumnDefinition Width = "5"/>
+                    <ColumnDefinition Width = "*"/>
+                    <ColumnDefinition Width = "5"/>
+                </Grid.ColumnDefinitions>
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key = "Chat_Page">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height = "5"   />
+                    <RowDefinition Height = "30"  />
+                    <RowDefinition Height = "5"   />
+                    <RowDefinition Height = "*"   />
+                    <RowDefinition Height = "5"   />
+                    <RowDefinition Height = "5"   />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width = "5"/>
+                    <ColumnDefinition Width = "5"/>
+                    <ColumnDefinition Width = "*"/>
+                    <ColumnDefinition Width = "5"/>
+                    <ColumnDefinition Width = "*"/>
+                    <ColumnDefinition Width = "5"/>
+                </Grid.ColumnDefinitions>
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key = "Terminal_Page">
+            <Grid>
+                
+            </Grid>
+        </DataTemplate>
+    </Window.Resources>
+
+    <Border x:Name = "Screen_Space"/>
+</Window>
