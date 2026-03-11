@@ -1,9 +1,9 @@
 ﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED   : 3/03/2026 12:29
+/// UPDATED   : 3/11/2026 08:07
 /// 
 /// REMAINING :
-///     Renderer CLASS
+///     Storage CLASS
 
 #region GENERAL HEADER
 
@@ -39,7 +39,7 @@ public static class Messager
 
     private static DateTime                  _gTIM_ = DateTime.MinValue; // Global Time
 
-    private static Action < int    , Batch   > _bEVT_ = null!          ; // Batch Event
+    private static Action < int    , Batch?  > _bEVT_ = null!          ; // Batch Event
     private static Action < int    , Message > _mEVT_ = null!          ; // Message Event
     private static Action < DateTime         > _tEVT_ = null!          ; // Time Event
     private static Action < int              > _cEVT_ = null!          ; // Count Event
@@ -161,15 +161,15 @@ public static class Messager
     /// <param name = "elmts"></param>
     private static void _SEND_CLIENT_ (              string[] elmts ) 
     {
-        if ( elmts.Length == 2 )
+        if ( elmts.Length == 1 )
         {
-            if      ( DateTime.TryParse( elmts[ 1 ], out DateTime time  ) )
+            if      ( DateTime.TryParse( elmts[ 0 ], out DateTime time  ) )
             {
                 _gTIM_ = time;
 
                 _tEVT_?.Invoke( time );
             }
-            else if ( int.TryParse     ( elmts[ 1 ], out int      count ) ) _cEVT_?.Invoke( count );
+            else if ( int.TryParse     ( elmts[ 0 ], out int      count ) ) _cEVT_?.Invoke( count );
         }
     }
 
@@ -183,6 +183,11 @@ public static class Messager
 
         if      ( elmts[ 0 ] == "BATCH"   )
         {
+            if ( elmts.Length == 2 )
+            {
+                _bEVT_?.Invoke( bIdx, null );
+                return;
+            }
             Batch btch = new ();
 
             for ( int idx = 2; idx < elmts.Length; idx += 3 )
@@ -208,25 +213,33 @@ public static class Messager
     /// <param name = "elmts"></param>
     private static void _SEND_SERVER_ ( Client clnt, string[] elmts ) 
     {
-        if ( elmts.Length == 4 )
+        if ( elmts.Length == 3 )
         {
-            if ( !DateTime.TryParse( elmts[ 2 ], out DateTime time ) ) return;
+            if ( !DateTime.TryParse( elmts[ 1 ], out DateTime time ) ) return;
 
-            Message msg = new ( elmts[ 1 ], time, elmts[ 3 ] );
+            Message msg = new ( elmts[ 0 ], time, elmts[ 2 ] );
 
             Batch.Include( msg );
 
-            Bridge.Fill_All( $"{ 3 }"               );
-            Bridge.Fill_All( "MESSAGE"              );
-            Bridge.Fill_All( Batch.Count.ToString() );
-            Bridge.Fill_All( msg.ToString()         );
+            Bridge.Fill_All( $"{ 3 }"                       );
+            Bridge.Fill_All( "MESSAGE"                      );
+            Bridge.Fill_All( ( Batch.Count - 1 ).ToString() );
+            Bridge.Fill_All( msg.ToString()                 );
         }
-        else if ( elmts.Length == 2 )
+        else if ( elmts.Length == 1 )
         {
-            if ( !int.TryParse( elmts[ 1 ], out int idx ) ) return;
+            if ( !int.TryParse( elmts[ 0 ], out int idx ) ) return;
 
-            Batch btch = Batch.Get( idx );
+            Batch? btch = Batch.Get( idx );
 
+            if ( btch == null )
+            {
+                Bridge.Fill( clnt, $"{ 2 }"       );
+                Bridge.Fill( clnt, "BATCH"        );
+                Bridge.Fill( clnt, idx.ToString() );
+
+                return;
+            }
             Bridge.Fill( clnt, $"{ btch.Size + 2 }" );
             Bridge.Fill( clnt, "BATCH"              );
             Bridge.Fill( clnt, idx.ToString()       );
@@ -249,9 +262,9 @@ public static class Messager
     /// <param name = "elmts"></param>
     private static void _RQST_SERVER_ ( Client clnt, string[] elmts ) 
     {
-        if ( elmts.Length != 2 ) return;
+        if ( elmts.Length != 1 ) return;
 
-        switch ( elmts[ 1 ] )
+        switch ( elmts[ 0 ] )
         {
             case    "TIME"  : Bridge.Send( clnt, DateTime.Now.ToString() ); break ;
             case    "COUNT" : Bridge.Send( clnt, Batch.Count.ToString()  ); break ;
@@ -267,16 +280,6 @@ public static class Messager
 /// </summary>
 public static class Renderer 
 {
-    #region PUBLIC   ENUMS
-
-    public enum Mode
-    {
-        IDL,
-        RFS,
-        DIR,
-    }
-
-    #endregion
     #region PRIVATE  INSTANCE FIELDS
 
     private static int          _bCNT_ = -1      ;
@@ -284,14 +287,15 @@ public static class Renderer
     private static int          _uIDX_ = -1      ; // The Upper Renderable Batch Index.
     private static int          _lIDX_ =  0      ; // The Lower Renderable Batch Index.
 
-    private static Batch?       _uBTC_ = null!   ; // The Upper Renderable Batch Object.
-    private static Batch?       _lBTC_ = null!   ; // The Lower Renderable Batch Object.
+    private static Batch?       _uBTC_ = null    ; // The Upper Renderable Batch Object.
+    private static Batch        _lBTC_ = null!   ; // The Lower Renderable Batch Object.
+
+    private static int          _PROC_ =  0      ;
 
     private static ScrollViewer _SCRL_ = null!   ;
     private static StackPanel   _MSGs_ = null!   ;
     private static DataTemplate _mTMP_ = null!   ;
-
-    private static Mode         _MODE_ = Mode.IDL;
+    private static int          _PDNG_ =  0      ;
 
     #endregion
 
@@ -306,17 +310,19 @@ public static class Renderer
     public static void Initialize (
         ScrollViewer scrl, 
         StackPanel   msgs, 
-        DataTemplate mTmp
+        DataTemplate mTmp,
+        int          pdng
     ) {
         _SCRL_ = scrl;
         _MSGs_ = msgs;
         _mTMP_ = mTmp;
+        _PDNG_ = pdng;
 
         Messager.Bind( _bLOD_ );
         Messager.Bind( _mLOD_ );
-        Messager.Bind( _CNT_  );
+        Messager.Bind( _cSET_ );
 
-        Refresh();
+        _ = Task.Run( Refresh );
     }
 
     #endregion
@@ -327,29 +333,17 @@ public static class Renderer
     /// </summary>
     /// <param name = "idx"></param>
     /// <param name = "btch"></param>
-    private static void _bLOD_ ( int idx, Batch   btch ) 
+    private static void _bLOD_ ( int idx, Batch?  btch ) 
     {
-        if      ( idx == _uIDX_ ) 
+        if      ( idx == _uIDX_ )
         {
             _uBTC_ = btch;
-
-            switch ( _MODE_ )
-            {
-                case Mode.RFS :
-                    _RFSH_            ( btch );
-                    _SCRL_.ScrollToEnd(      );
-                break;
-
-                case Mode.DIR :
-
-                break;
-
-                default : break;
-            }
+            _PROC_--     ;
         }
         else if ( idx == _lIDX_ )
         {
-            _lBTC_ = btch;
+            _lBTC_ = btch!;
+            _PROC_--      ;
         }
     }
 
@@ -373,27 +367,78 @@ public static class Renderer
                 if ( msg.Sender == Messager._NAME_ ) _SCRL_.ScrollToEnd();
             });
         }
-        if   ( _lBTC_ != null ) _lBTC_!._INCD_( msg );
-        else                    _lBTC_ = new  ( msg );
+        else
+        {
+            _ = Task.Run( Refresh );
+
+            return;
+        }
+        if (_lBTC_ != null) _lBTC_!._INCD_( msg );
+        else                _lBTC_ = new  ( msg );
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "idx" ></param>
+    /// <param name = "drct"></param>
+    private static void _bSET_ ( int idx, short   drct ) 
+    {
+        switch ( drct )
+        {
+            case -1 : 
+                _lIDX_ = idx; 
+                
+                Messager.Send( _lIDX_ ); 
+            break;
+
+            case  1 :
+                _uIDX_ = idx;
+
+                Messager.Send( _uIDX_ );
+            break;
+
+            default : return;
+        }
+        _PROC_++;
     }
 
     /// <summary>
     /// 
     /// </summary>
     /// <param name = "cnt"></param>
-    private static void _CNT_  ( int cnt               ) 
+    private static void _cSET_ ( int cnt               ) 
     {
         _bCNT_ = cnt;
     }
 
     #endregion
-    #region PRIVATE  STATIC   FUNCTIONS
+    #region PUBLIC   STATIC   FUNCTIONS
 
-    private static void _RFSH_ ( Batch btch ) 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    public static async Task Refresh         () 
     {
-        if ( btch == _uBTC_ )
+        _bCNT_ = -1;
+
+        Messager.Request( Messager.COUNT );
+
+        Retry r = new ();
+
+        if ( !await r.Attempt_Async( bool () => _bCNT_ != -1 ) ) return;
+        
+        _bSET_( _bCNT_ - 2,  1 );
+        _bSET_( _bCNT_ - 1, -1 );
+
+        if ( !await r.Attempt_Async( bool () => _PROC_ ==  0 ) ) return;
+
+        Application.Current.Dispatcher.Invoke( () =>
         {
-            Message? cur = btch.Last;
+            _MSGs_.Children.Clear();
+        
+            Message? cur = _uBTC_?.Last;
 
             while ( cur != null )
             {
@@ -406,10 +451,7 @@ public static class Renderer
 
                 cur = cur._PREV_;
             }
-        }
-        if ( btch == _lBTC_ )
-        {
-            Message? cur = _lBTC_.First;
+            cur = _lBTC_?.First;
 
             while ( cur != null )
             {
@@ -423,46 +465,41 @@ public static class Renderer
                 cur = cur._NEXT_;
             }
             _SCRL_.ScrollToEnd();
-        }
+        });
     }
-
-    #endregion
-    #region PUBLIC   STATIC   FUNCTIONS
 
     /// <summary>
     /// 
     /// </summary>
-    /// <returns></returns>
-    public static void Refresh () 
+    public static async Task Render_Upward   () 
     {
+        if ( _PROC_ > 0 || _lBTC_ == null ) return;
+
+        _bCNT_ = -1;
+
         Messager.Request( Messager.COUNT );
-    }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name = "pdng"></param>
-    public static void Render_Upward   ( 
-        int pdng
-    ) {
-        if ( _SCRL_.VerticalOffset > 0 || _lBTC_ == null ) return;
+        Retry r = new ();
 
-        if ( _bCNT_ == 0 || _uIDX_ <= 0 ) return;
+        if ( !await r.Attempt_Async( bool () => _bCNT_ != -1 ) ) return;
         
-        for ( int i = 0; i < _lBTC_.Size; i++ ) _MSGs_.Children.RemoveAt( _MSGs_.Children.Count - 1 );
+        if ( _bCNT_ == 0 || _uIDX_ <= 0 ) return;
 
-        _lIDX_ = _uIDX_;
-        _uIDX_--       ;
+        int bSiz = _lBTC_.Size;
 
-        _lBTC_ = _uBTC_;
+        _lIDX_ = _uIDX_ ;
+        _lBTC_ = _uBTC_!;
 
-        Messager.Send( _uIDX_ );
+        _bSET_( _uIDX_ - 1, 1 );
+
+        if ( !await r.Attempt_Async( bool () => _PROC_ == 0 ) ) return;
 
         if ( _uBTC_ == null ) return;
-        
-        Message? cur = _uBTC_.Last;
 
-        double height = _uBTC_.Size * pdng;
+        Message? cur    = _uBTC_?.Last         ;
+        double   height = _uBTC_!.Size * _PDNG_;
+
+        for ( int i = 0; i < bSiz; i++ ) _MSGs_.Children.RemoveAt( _MSGs_.Children.Count - 1 );
 
         while ( cur != null )
         {
@@ -482,17 +519,35 @@ public static class Renderer
     /// <summary>
     /// 
     /// </summary>
-    /// <param name = "pdng"></param>
-    public static void Render_Downward ( 
-        int          pdng
-    ) {
-        if ( _SCRL_.VerticalOffset < _SCRL_.ScrollableHeight || _uBTC_ == null ) return;
+    public static async Task Render_Downward () 
+    {
+        if ( _PROC_ > 0 || _uBTC_ == null ) return;
 
-        if ( _bCNT_ == 0 || _lIDX_ >= _bCNT_ - 1 ) return;
+        _bCNT_ = -1;
+
+        Messager.Request( Messager.COUNT );
+
+        Retry r = new ();
+
+        if ( !await r.Attempt_Async( bool () => _bCNT_ != -1 ) ) return;
         
-        double height = _uBTC_.Size * pdng;
+        if ( _bCNT_ == 0 || _lIDX_ >= _bCNT_ ) return;
 
-        for ( int i = 0; i < _uBTC_.Size; i++ )
+        int bSiz = _uBTC_.Size;
+
+        _uIDX_ = _lIDX_;
+        _uBTC_ = _lBTC_;
+
+        _bSET_( _lIDX_ + 1, 1 );
+
+        if ( !await r.Attempt_Async( bool () => _PROC_ == 0 ) ) return;
+        
+        if ( _lBTC_ == null ) return;
+
+        Message? cur    = _lBTC_.First ;
+        double   height = bSiz * _PDNG_;
+
+        for ( int i = 0; i < bSiz; i++ )
         {
             FrameworkElement elmt = ( FrameworkElement )_MSGs_.Children[ 0 ];
 
@@ -500,17 +555,6 @@ public static class Renderer
 
             _MSGs_.Children.RemoveAt( 0 );
         }
-        _uIDX_ = _lIDX_;
-        _lIDX_++       ;
-
-        _uBTC_ = _lBTC_;
-
-        Messager.Send( _lIDX_ );
-
-        if ( _lBTC_ == null ) return;
-        
-        Message? cur = _lBTC_.First;
-
         while ( cur != null )
         {
             FrameworkElement elmt = ( FrameworkElement )_mTMP_.LoadContent();
@@ -526,6 +570,14 @@ public static class Renderer
     }
 
     #endregion
+}
+
+/// <summary>
+/// 
+/// </summary>
+public static class Storage  
+{
+    // TODO;
 }
 
 // SEALED CLASSES //

@@ -6,6 +6,17 @@
 
 namespace Project.SubSystems.Authentication;
 
+// STATIC CLASSES //
+
+/// <summary>
+/// 
+/// </summary>
+public static class Storage 
+{
+    // TODO;
+}
+
+
 // ABSTRACT CLASSES //
 
 /// <summary>

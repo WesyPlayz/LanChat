@@ -297,7 +297,7 @@ public partial class MainWindow : Window
             }
             ctpg.Children.Add( mgwd );
 
-            SubSystem.Messaging.Renderer.Initialize( scrl, msgs, Chat_Page.Message );
+            SubSystem.Messaging.Renderer.Initialize( scrl, msgs, Chat_Page.Message, 20 );
         }
         this.Screen_Space.Child = ctpg;
         this._PAGE_             = fctp;
@@ -398,12 +398,6 @@ public partial class MainWindow : Window
             SubSystem.Messaging.Messager.Send( ctpg.Input.Text );
             ctpg.Input.Clear                 (                 );
 
-            /*
-            if ( !SubSystem.Messaging.Renderer.Refresh( ctpg.Scroll_Space, ctpg.Messages, Chat_Page.Message ) )
-            {
-                SubSystem.Messaging.Renderer.Render_Next( ctpg.Scroll_Space, ctpg.Messages, Chat_Page.Message );
-            }
-            */
             this._CYCL_ = false;
         }
     }
@@ -453,8 +447,8 @@ public partial class MainWindow : Window
         {
             this._CYCL_ = true;
 
-            //SubSystem.Messaging.Renderer.Render_Upward  ( ctpg.Scroll_Space, ctpg.Messages, Chat_Page.Message, 20 );
-            //SubSystem.Messaging.Renderer.Render_Downward( ctpg.Scroll_Space, ctpg.Messages, Chat_Page.Message, 20 );
+            //if ( ctpg.Scroll_Space.VerticalOffset <= 0                                  ) _ = Task.Run( SubSystem.Messaging.Renderer.Render_Upward   );
+            //if ( ctpg.Scroll_Space.VerticalOffset == ctpg.Scroll_Space.ScrollableHeight ) _ = Task.Run( SubSystem.Messaging.Renderer.Render_Downward );
         
             this._CYCL_ = false;
         }

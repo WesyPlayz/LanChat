@@ -1,6 +1,6 @@
 ﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED   : 3/03/2026 12:44
+/// UPDATED   : 3/11/2026 06:41
 /// 
 /// REMAINING : FINISHED ( SUBJECT TO UPDATE )
 
@@ -223,7 +223,7 @@ internal sealed   class rtClient : rtEntity
                 this._eQUE_ = [];
             }
         }
-        else Bridge._OPCDs_[ elmts[ 0 ] ]._cEVNT_?.Invoke( elmts );
+        else Bridge._OPCDs_[ elmts[ 0 ] ]._cEVNT_?.Invoke( elmts[ 1 .. ] );
     }
 
     /// <summary>
@@ -450,6 +450,7 @@ internal sealed   class rtServer : rtEntity
     /// <param name = "elmts"></param>
     private       void _INVK_ ( Client    clnt, string[]      elmts              ) 
     {
+        foreach (string r in elmts) Console.WriteLine(r);
         if ( elmts.Length <= 1 || !Bridge._OPCDs_.ContainsKey( elmts[ 0 ] ) ) return;
 
         if ( elmts[ 0 ] == Bridge.FIL && elmts.Length == 2 )
@@ -473,7 +474,7 @@ internal sealed   class rtServer : rtEntity
                 this._eQUE_ = [];
             }
         }
-        else Bridge._OPCDs_[ elmts[ 0 ] ]._sEVNT_?.Invoke( clnt, elmts );
+        else Bridge._OPCDs_[ elmts[ 0 ] ]._sEVNT_?.Invoke( clnt, elmts[ 1 .. ] );
     }
 
     /// <summary>

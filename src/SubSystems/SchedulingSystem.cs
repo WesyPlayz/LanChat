@@ -1,6 +1,6 @@
 ﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED   : 3/03/2026 12:36
+/// UPDATED   : 3/11/2026 08:36
 /// 
 /// REMAINING : FINISHED ( SUBJECT TO UPDATE )
 
@@ -151,7 +151,7 @@ public        struct Retry ( uint trys = 0, int mult = 1 )
     /// 
     /// </summary>
     /// <param name = "cndt"></param>
-    public readonly bool          Attempt       ( Func < bool > cndt ) 
+    public readonly bool                Attempt       ( Func < bool > cndt ) 
     {
         uint cur = this._TRYS_ == 0 ? 1 : this._TRYS_;
 
