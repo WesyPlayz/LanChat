@@ -11,6 +11,9 @@
 
 using System.Net.Sockets;
 
+using System.Windows;
+using System.Windows.Controls;
+
 #endregion
 #region LANCHAT HEADER
 
@@ -55,8 +58,10 @@ public static class     Bridge
     #endregion
     #region INTERNAL STATIC FIELDS
 
-    internal readonly static int      _dPRT_  = 6000     ;
-    internal readonly static string   _DFLT_  = "LC-SERV";
+    internal readonly static int                   _dPRT_  = 6000     ;
+    internal readonly static string                _DFLT_  = "LC-SERV";
+    
+    internal          static Action < iEntity[] >? _ADD_   = null     ;
 
     internal readonly static Dictionary < 
         string, 
@@ -115,20 +120,6 @@ public static class     Bridge
     public static void Stop  () => _RNTM_?._STOP_();
 
     #endregion
-    #region PUBLIC   STATiC ACCESSORS
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <returns></returns>
-    public static iEntity[]? Get () 
-    {
-        if ( _RNTM_ == null ) return null;
-
-        return [ .. _RNTM_._ETTYs_ ];
-    }
-
-    #endregion
     #region PUBLIC   STATIC MODIFIERS
 
     /// <summary>
@@ -136,7 +127,7 @@ public static class     Bridge
     /// </summary>
     /// <param name = "opcd"></param>
     /// <param name = "func"></param>
-    public static void Bind ( string opcd, Action <         string[] > func ) 
+    public static void Bind   ( string opcd, Action <         string[] > func ) 
     {
         if ( !_OPCDs_.ContainsKey( opcd ) ) return;
 
@@ -148,11 +139,39 @@ public static class     Bridge
     /// </summary>
     /// <param name = "opcd"></param>
     /// <param name = "func"></param>
-    public static void Bind ( string opcd, Action < Client, string[] > func ) 
+    public static void Bind   ( string opcd, Action < Client, string[] > func ) 
     {
         if ( !_OPCDs_.ContainsKey( opcd ) ) return;
 
         if ( _RNTM_ is rtServer ) _OPCDs_[ opcd ] = ( null, func );
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "func"></param>
+    public static void Bind   (              Action < iEntity[]        > func ) 
+    {
+        _ADD_ = func;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "opcd"></param>
+    public static void Unbind ( string opcd )
+    {
+        if ( !_OPCDs_.ContainsKey( opcd ) ) return;
+
+        _OPCDs_[ opcd ] = ( null, null );
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public static void Unbind (             )
+    {
+        _ADD_ = null;
     }
 
     #endregion
@@ -183,7 +202,7 @@ public static class     Bridge
     /// <param name = "pyld"></param>
     public static void Send_All    (              string pyld ) 
     {
-        if ( _RNTM_ is rtServer serv ) serv._SEND_( Bridge.SND, pyld );
+        if ( _RNTM_ is rtServer serv ) serv._SEND_( SND, pyld );
     }
 
     /// <summary>
@@ -211,7 +230,7 @@ public static class     Bridge
     /// <param name = "pyld"></param>
     public static void Fill_All    (              string pyld ) 
     {
-        if ( _RNTM_ is rtServer serv ) serv._SEND_( Bridge.FIL, pyld );
+        if ( _RNTM_ is rtServer serv ) serv._SEND_( FIL, pyld );
     }
 
     /// <summary>
@@ -239,7 +258,7 @@ public static class     Bridge
     /// <param name = "pyld"></param>
     public static void Request_All (              string pyld )
     {
-        if ( _RNTM_ is rtServer serv ) serv._SEND_( Bridge.REQ, pyld );
+        if ( _RNTM_ is rtServer serv ) serv._SEND_( REQ, pyld );
     }
 
     #endregion
@@ -275,7 +294,87 @@ public static class     Bridge
 /// </summary>
 public static class     Renderer 
 {
+    #region PRIVATE STATIC FIELDS
 
+    private static ScrollViewer _SCRL_  = null!;
+    private static StackPanel   _ELMTs_ = null!;
+    private static DataTemplate _ELMT_  = null!;
+
+    private static iEntity[]    _ENTs_  = []   ;
+
+    #endregion
+
+    #region PUBLIC  STATIC INITIALIZERS
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "scrl" ></param>
+    /// <param name = "elmts"></param>
+    /// <param name = "elmt" ></param>
+    public static void Initialize ( ScrollViewer scrl, StackPanel elmts, DataTemplate elmt ) 
+    {
+        _SCRL_  = scrl ;
+        _ELMTs_ = elmts;
+        _ELMT_  = elmt ;
+    }
+
+    #endregion
+    #region PRIVATE STATIC MODIFIERS
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "ents"></param>
+    private static void _LOD_ ( iEntity[] ents ) 
+    {
+        _ENTs_ = ents;
+
+        _DSPY_();
+    }
+
+    #endregion
+    #region PUBLIC  STATIC FUNCTIONS
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public static void Start () => Bridge.Bind  ( _LOD_ );
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public static void Stop  () => Bridge.Unbind(       );
+
+    #endregion
+    #region PRIVATE STATIC FUNCTIONS
+
+    /// <summary>
+    /// 
+    /// </summary>
+    private static void _DSPY_ () 
+    {
+        if ( _SCRL_ == null || _ELMTs_ == null || _ELMT_ == null ) return;
+
+        _ELMTs_.Children.Clear();
+
+        if ( _ENTs_ != null )
+        {
+            foreach ( iEntity ent in _ENTs_ )
+            {
+                Console.WriteLine( ent.ToString() );
+
+                FrameworkElement elmt = ( FrameworkElement )_ELMT_.LoadContent();
+
+                elmt.DataContext = ent;
+
+                _ELMTs_.Children.Add( elmt );
+                _SCRL_.UpdateLayout (      );
+            }
+        }
+    }
+
+    #endregion
 }
 
 // SEALED CLASSES //

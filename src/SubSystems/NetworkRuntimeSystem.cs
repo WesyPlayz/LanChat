@@ -183,7 +183,8 @@ internal sealed   class rtClient : rtEntity
 
         rt.Attempt_Async( () => this._STRM_ != null ).GetAwaiter().GetResult();
 
-        if ( cmd == Bridge.FIL && this._sREQ_ != 0 )
+        if      ( cmd == Bridge.FIL && this._sREQ_ == 0 && int.TryParse( pyld, out int sReq ) ) this._sREQ_ = sReq;
+        else if ( cmd == Bridge.FIL && this._sREQ_ != 0                                       )
         {
             cmd         = Bridge.NXT;
             this._sREQ_--           ;
@@ -305,6 +306,8 @@ internal sealed   class rtClient : rtEntity
         {
             while ( this._SYNC_.Continue )
             {
+                this._ETTYs_ = [];
+
                 await this._DTGM_.SendAsync( pswd, pswd.Length, IPAddress.Broadcast.ToString(), Bridge._dPRT_ );
 
                 var timer = Task.Delay( 500 );
@@ -328,6 +331,8 @@ internal sealed   class rtClient : rtEntity
                         if ( !this._ETTYs_.Contains( serv ) ) this._ETTYs_.Add( serv );
                     }
                 }
+                Bridge._ADD_?.Invoke( [ .. this._ETTYs_ ] );
+
                 await Task.Delay( 500 );
             }
             this._SYNC_.Stop();
@@ -404,7 +409,8 @@ internal sealed   class rtServer : rtEntity
     /// <param name = "pyld"></param>
     internal      void _SEND_ ( string    cmd , NetworkStream strm, string pyld  ) 
     {
-        if ( cmd == Bridge.FIL && this._sREQ_ != 0 )
+        if      ( cmd == Bridge.FIL && this._sREQ_ == 0 && int.TryParse( pyld, out int sReq ) ) this._sREQ_ = sReq;
+        else if ( cmd == Bridge.FIL && this._sREQ_ != 0                                       )
         {
             cmd         = Bridge.NXT;
             this._sREQ_--           ;
@@ -421,7 +427,8 @@ internal sealed   class rtServer : rtEntity
     /// <param name = "pyld"></param>
     internal      void _SEND_ ( string    cmd ,                     string pyld  ) 
     {
-        if ( cmd == Bridge.FIL && this._sREQ_ != 0 )
+        if      ( cmd == Bridge.FIL && this._sREQ_ == 0 && int.TryParse( pyld, out int sReq ) ) this._sREQ_ = sReq;
+        else if ( cmd == Bridge.FIL && this._sREQ_ != 0                                       )
         {
             cmd         = Bridge.NXT;
             this._sREQ_--           ;
@@ -481,7 +488,8 @@ internal sealed   class rtServer : rtEntity
         Client        clnt = new ( cntn );
         string        rqst = ""          ;
 
-        this._ETTYs_.Add( clnt );
+        this._ETTYs_.Add    ( clnt                );
+        Bridge._ADD_?.Invoke( [ .. this._ETTYs_ ] );
         
         while ( this._SYNC_.Continue )
         {

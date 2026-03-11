@@ -195,9 +195,9 @@ public static class Messager
         }
         else if ( elmts[ 0 ] == "MESSAGE" )
         {
-            if ( !DateTime.TryParse( elmts[ 2 ], out DateTime time ) ) return;
+            if ( !DateTime.TryParse( elmts[ 3 ], out DateTime time ) ) return;
 
-            _mEVT_?.Invoke( bIdx, new( elmts[ 1 ], time - _OFST_, elmts[ 3 ] ) );
+            _mEVT_?.Invoke( bIdx, new( elmts[ 2 ], time - _OFST_, elmts[ 4 ] ) );
         }
     }
 
@@ -300,9 +300,9 @@ public static class Renderer
     /// <summary>
     /// 
     /// </summary>
-    /// <param name = "mPnl"></param>
+    /// <param name = "scrl"></param>
     /// <param name = "msgs"></param>
-    /// <param name = "tMsg"></param>
+    /// <param name = "mTmp"></param>
     public static void Initialize (
         ScrollViewer scrl, 
         StackPanel   msgs, 
@@ -314,6 +314,7 @@ public static class Renderer
 
         Messager.Bind( _bLOD_ );
         Messager.Bind( _mLOD_ );
+        Messager.Bind( _CNT_  );
 
         Refresh();
     }
@@ -358,21 +359,22 @@ public static class Renderer
     /// <param name = "msg"></param>
     private static void _mLOD_ ( int idx, Message msg  ) 
     {
-        bool sndr = msg.Sender == Messager._NAME_;
-
-        if ( sndr || idx == _lIDX_ )
+        if ( idx == _lIDX_ )
         {
-            FrameworkElement elmt = ( FrameworkElement )_mTMP_.LoadContent();
+            Application.Current.Dispatcher.Invoke( () =>
+            {
+                FrameworkElement elmt = ( FrameworkElement )_mTMP_.LoadContent();
 
-            elmt.DataContext = msg;
+                elmt.DataContext = msg;
 
-            _MSGs_.Children.Add( elmt );
-            _SCRL_.UpdateLayout(      );
+                _MSGs_.Children.Add( elmt );
+                _SCRL_.UpdateLayout(      );
 
-            if      ( sndr          ) _SCRL_.ScrollToEnd(     );
-            else if (_lBTC_ != null ) _lBTC_!._INCD_    ( msg );
-            else                      _lBTC_ = new      ( msg );
+                if ( msg.Sender == Messager._NAME_ ) _SCRL_.ScrollToEnd();
+            });
         }
+        if   ( _lBTC_ != null ) _lBTC_!._INCD_( msg );
+        else                    _lBTC_ = new  ( msg );
     }
 
     /// <summary>
@@ -381,13 +383,7 @@ public static class Renderer
     /// <param name = "cnt"></param>
     private static void _CNT_  ( int cnt               ) 
     {
-        _MSGs_.Children.Clear();
-
-        _uIDX_ = cnt - 2;
-        _lIDX_ = cnt - 1;
-
-        Messager.Send( _uIDX_ );
-        Messager.Send( _lIDX_ );
+        _bCNT_ = cnt;
     }
 
     #endregion
@@ -436,9 +432,6 @@ public static class Renderer
     /// <summary>
     /// 
     /// </summary>
-    /// <param name = "mPnl"></param>
-    /// <param name = "msgs"></param>
-    /// <param name = "tMsg"></param>
     /// <returns></returns>
     public static void Refresh () 
     {
@@ -448,9 +441,6 @@ public static class Renderer
     /// <summary>
     /// 
     /// </summary>
-    /// <param name = "mPnl"></param>
-    /// <param name = "msgs"></param>
-    /// <param name = "tMsg"></param>
     /// <param name = "pdng"></param>
     public static void Render_Upward   ( 
         int pdng
@@ -492,9 +482,6 @@ public static class Renderer
     /// <summary>
     /// 
     /// </summary>
-    /// <param name = "mPnl"></param>
-    /// <param name = "msgs"></param>
-    /// <param name = "tMsg"></param>
     /// <param name = "pdng"></param>
     public static void Render_Downward ( 
         int          pdng
@@ -606,9 +593,18 @@ public sealed class Message
     /// 
     /// </summary>
     /// <returns></returns>
-    public override string ToString() => (
-        $"{ this.Sender } { Serializer.SPLITTER } { this.Time } { Serializer.SPLITTER } { this.Content }"
+    public override string ToString () => (
+        $"{ this.Sender }{ Serializer.SPLITTER }{ this.Time }{ Serializer.SPLITTER }{ this.Content }"
     );
+
+    #endregion
+    #region INTERNAL INSTANCE MODIFIERS
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "etry"></param>
+    internal void _EDIT_ ( string etry ) => this.Content = etry;
 
     #endregion
 }

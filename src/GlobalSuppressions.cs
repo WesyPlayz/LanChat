@@ -67,3 +67,4 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage("Usage", "CA2211:Non-constant fields should not be visible", Justification = "<Pending>", Scope = "member", Target = "~F:LanChat.SubSystem.UserInterface.Login_Page.Server")]
 [assembly: SuppressMessage("Interoperability", "CA1401:P/Invokes should not be visible", Justification = "<Pending>", Scope = "member", Target = "~M:LanChat.SubSystem.Debugging.Debug.AllocConsole~System.Boolean")]
 [assembly: SuppressMessage("Interoperability", "SYSLIB1054:Use 'LibraryImportAttribute' instead of 'DllImportAttribute' to generate P/Invoke marshalling code at compile time", Justification = "<Pending>", Scope = "member", Target = "~M:LanChat.SubSystem.Debugging.Debug.AllocConsole~System.Boolean")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "type", Target = "~T:LanChat.SubSystem.Network.iEntity")]
