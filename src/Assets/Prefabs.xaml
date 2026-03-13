@@ -698,6 +698,85 @@
         </Border>
     </DataTemplate>
 
+    <DataTemplate x:Key = "Login_Panel">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height = "auto"/>
+                <RowDefinition Height = "auto"/>
+                <RowDefinition Height = "auto"/>
+                <RowDefinition Height = "*"   />
+            </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width = "auto"/>
+                <ColumnDefinition Width = "*"   />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock
+                Text              = "Username : "
+        
+                Foreground        = "White"
+        
+                VerticalAlignment = "Center"
+        
+                Margin            = "10 0"
+            >
+            </TextBlock>
+
+            <TextBlock
+                Text              = "Password : "
+        
+                Grid.Row          = "1"
+    
+                Foreground        = "White"
+    
+                VerticalAlignment = "Center"
+    
+                Margin            = "10 0"
+            >
+            </TextBlock>
+
+            <TextBox
+                x:Name      = "Username"
+        
+                Grid.Row    = "0"
+                Grid.Column = "1"
+        
+                Height      = "25"
+        
+                Margin      = "0 10"
+            >
+            </TextBox>
+
+            <TextBox
+                x:Name      = "Password"
+        
+                Grid.Row    = "1"
+                Grid.Column = "1"
+        
+                Height      = "25"
+        
+                Margin      = "0 10"
+            >
+            </TextBox>
+
+            <Button
+                x:Name          = "Join"
+        
+                Content         = "Join"
+        
+                Grid.Row        = "2"
+                Grid.Column     = "1"
+        
+                Height          = "25"
+        
+                Margin          = "0 25"
+            >
+
+            </Button>
+        </Grid>
+    </DataTemplate>
+
     <!-- ELEMENT TEMPLATES -->
 
     <DataTemplate  x:Key = "Client">
@@ -707,6 +786,7 @@
     <DataTemplate  x:Key = "Server">
         <Button
             Background                 = "Transparent"
+            BorderBrush                = "{ StaticResource Primary0 }"
                     
             HorizontalContentAlignment = "Left"
                     
@@ -724,6 +804,7 @@
                 </Grid.ColumnDefinitions>
 
                 <TextBlock
+                    x:Name                         = "Name"
                     Grid.Column                    = "0"
                     
                     Text                           = "{ Binding Name }"
@@ -750,6 +831,7 @@
                 >
                 </TextBlock>
                 <TextBlock
+                    x:Name                         = "Ip"
                     Grid.Column                    = "2"
     
                     Text                           = "{ Binding Ip }"
@@ -776,6 +858,7 @@
                 >
                 </TextBlock>
                 <TextBlock
+                    x:Name                         = "Port"
                     Grid.Column                    = "4"
     
                     Text                           = "{ Binding Port }"

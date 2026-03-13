@@ -1,6 +1,6 @@
 ﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED   : 3/03/2026 12:37
+/// UPDATED   : 3/12/2026 00:00
 /// 
 /// REMAINING : 
 ///     Terminal_Page CLASS
@@ -163,7 +163,11 @@ public sealed class     Terminal_Page
 public sealed class     Login_Page    (
     TextBox      inpt = null!,
     ScrollViewer scrl = null!,
-    StackPanel   srvs = null!
+    StackPanel   srvs = null!,
+    StackPanel   lipl = null!,
+    TextBox      urnm = null!,
+    TextBox      pswd = null!,
+    Button       join = null!
 
 ) : uiPage {
     #region PUBLIC INSTANCE FIELDS
@@ -171,6 +175,10 @@ public sealed class     Login_Page    (
     public TextBox      Input        = inpt;
     public ScrollViewer Scroll_Space = scrl;
     public StackPanel   Servers      = srvs;
+    public StackPanel   Login_Panel  = lipl;
+    public TextBox      Username     = urnm;
+    public TextBox      Password     = pswd;
+    public Button       Join         = join;
 
     #endregion
     #region PUBLIC STATIC   FIELDS
@@ -206,6 +214,7 @@ public sealed class     Chat_Page     (
     #endregion
     #region PUBLIC STATIC   FIELDS
 
+    public static DataTemplate Client  = null!;
     public static DataTemplate Message = null!;
 
     #endregion

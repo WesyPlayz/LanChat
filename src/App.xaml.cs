@@ -122,12 +122,9 @@ public partial class App : Application
 
         this.MainWindow = new MainWindow( this );
 
-        this.MainWindow.Show();
-
-        Bridge.Initialize( ext == Extention.NIL ? Bridge.Mode.CNT : Bridge.Mode.SRV );
-        Bridge.Start     (                                                          );
-        if ( Bridge.Connect( 0 ) && this.MainWindow is MainWindow mw ) mw._cINIT_();
-        Messager.Initialize( Bridge.Mode.CNT, "Ryan" );
+        this.MainWindow.Show(                                                          );
+        Bridge.Initialize   ( ext == Extention.NIL ? Bridge.Mode.CNT : Bridge.Mode.SRV );
+        Bridge.Start        (                                                          );
     }
 
     /// <summary>
@@ -146,6 +143,11 @@ public partial class App : Application
             default                 :                  break;
         }
     }
+
+    #endregion
+    #region INTERNAL INSTANCE RUNTIME MANAGEMENT
+
+
 
     #endregion
 }

@@ -1,6 +1,6 @@
 ﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED   : 3/11/2026 06:41
+/// UPDATED   : 3/13/2026 10:03
 /// 
 /// REMAINING : FINISHED ( SUBJECT TO UPDATE )
 
@@ -39,6 +39,12 @@ internal abstract class rtEntity
 
     #endregion
 
+    #region INTERNAL INSTANCE COMPUTED
+
+    internal int _CNT_ => _ETTYs_.Count;
+
+    #endregion
+
     #region INTERNAL  ABSTRACT FUNCTIONS
 
     internal abstract void      _STRT_ ();
@@ -70,6 +76,13 @@ internal sealed   class rtClient : rtEntity
 
     private int             _sREQ_  = 0                ;
     private int             _fREQ_  = 0                ;
+    private bool            _DRNG_  = false            ;
+
+    #endregion
+
+    #region INTERNAL INSTANCE COMPUTED
+
+    internal bool _ISCN_ => _SERV_ != null;
 
     #endregion
 
@@ -80,7 +93,7 @@ internal sealed   class rtClient : rtEntity
     /// </summary>
     internal override void      _STRT_ () 
     {
-        if ( !this._SYNC_.Idle || this._DTGM_ != null ) return;
+        if ( !this._SYNC_.Idle ) return;
 
         this._DCVR_();
     }
@@ -125,8 +138,6 @@ internal sealed   class rtClient : rtEntity
     /// <param name = "pswd"></param>
     internal       void         _STRT_ ( string pswd ) 
     {
-        if ( !this._SYNC_.Idle || this._DTGM_ != null ) return;
-
         this._DCVR_( pswd );
     }
 
@@ -167,6 +178,14 @@ internal sealed   class rtClient : rtEntity
         this._SYNC_.Stop();
 
         return rslt;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    internal       void         _DSCN_ (             ) 
+    {
+        // TODO;
     }
 
     #endregion
@@ -218,12 +237,23 @@ internal sealed   class rtClient : rtEntity
 
             if ( this._fREQ_ == 0 )
             {
-                Bridge._OPCDs_[ elmts[ 0 ] ]._cEVNT_?.Invoke( [ .. this._eQUE_ ] );
-
+                if ( Bridge._OPCDs_[ elmts[ 0 ] ]._cEVNT_ != null )
+                {
+                    foreach ( Action < string[] > func in Bridge._OPCDs_[ elmts[ 0 ] ]._cEVNT_! )
+                    {
+                        func.Invoke( [ .. this._eQUE_ ] );
+                    }
+                }
                 this._eQUE_ = [];
             }
         }
-        else Bridge._OPCDs_[ elmts[ 0 ] ]._cEVNT_?.Invoke( elmts[ 1 .. ] );
+        else if ( Bridge._OPCDs_[ elmts[ 0 ] ]._cEVNT_ != null )
+        {
+            foreach ( Action < string[] > func in Bridge._OPCDs_[ elmts[ 0 ] ]._cEVNT_! )
+            {
+                func.Invoke( elmts[ 1 .. ] );
+            }
+        }
     }
 
     /// <summary>
@@ -265,10 +295,11 @@ internal sealed   class rtClient : rtEntity
     /// <param name = "pswd"></param>
     private void _DCVR_ ( string pswd ) 
     {
-        if (!this._SYNC_.Continue || this._DTGM_ == null || this._PSWDs_.Contains( pswd ) ) return;
+        if ( _DRNG_ || this._PSWDs_.Contains( pswd ) ) return;
 
-        this._SYNC_.Start(      );
-        this._PSWDs_.Add ( pswd );
+        _DRNG_ = true;
+
+        this._DTGM_ ??= new() { EnableBroadcast = true };
 
         byte[] bPsw = Encoding.UTF8.GetBytes( pswd );
 
@@ -276,19 +307,33 @@ internal sealed   class rtClient : rtEntity
         { 
             await this._DTGM_.SendAsync( bPsw, bPsw.Length, IPAddress.Broadcast.ToString(), Bridge._dPRT_ );
 
-            if ( this._DTGM_.Available == 0 ) return;
+            Task timeout = Task.Delay( 500 );
 
-            var rspc = await this._DTGM_.ReceiveAsync();
-
-            string[] elmts = Encoding.UTF8.GetString( rspc.Buffer ).Split( " : " );
-
-            if ( elmts.Length == 2 )
+            while ( !timeout.IsCompleted )
             {
-                Server serv = new ( elmts[ 0 ], int.Parse( elmts[ 1 ] ) );
+                if ( this._DTGM_.Available == 0 )
+                {
+                    await Task.Delay( 10 );
 
-                if ( !this._ETTYs_.Contains( serv ) ) this._ETTYs_.Add( serv );
+                    continue;
+                }
+                var rspc = await this._DTGM_.ReceiveAsync();
+
+                string[] elmts = Encoding.UTF8.GetString( rspc.Buffer ).Split( " : " );
+
+                if ( elmts.Length == 2 )
+                {
+                    Server serv = new ( elmts[ 0 ], int.Parse( elmts[ 1 ] ) );
+
+                    if ( !this._ETTYs_.Contains( serv ) )
+                    {
+                        this._ETTYs_.Add( serv );
+                        this._PSWDs_.Add( pswd );
+                    }
+                }
+                Bridge._ADD_?.Invoke( [ .. this._ETTYs_ ] );
             }
-            this._SYNC_.Stop();
+            _DRNG_ = false;
         });
     }
 
@@ -297,10 +342,9 @@ internal sealed   class rtClient : rtEntity
     /// </summary>
     private void _DCVR_ (             ) 
     {
-        this._SYNC_.Start()                           ;
-        this._DTGM_ = new() { EnableBroadcast = true };
+        this._SYNC_.Start();
 
-        byte[] pswd = Encoding.UTF8.GetBytes( Bridge._DFLT_ );
+        this._DTGM_ ??= new() { EnableBroadcast = true };
 
         Task.Run( async () =>
         {
@@ -308,32 +352,41 @@ internal sealed   class rtClient : rtEntity
             {
                 this._ETTYs_ = [];
 
-                await this._DTGM_.SendAsync( pswd, pswd.Length, IPAddress.Broadcast.ToString(), Bridge._dPRT_ );
+                List< string > pswds = [ .. this._PSWDs_ ];
 
-                var timer = Task.Delay( 500 );
+                pswds.Add( Bridge._DFLT_ );
 
-                while ( this._SYNC_.Continue && !timer.IsCompleted )
+                foreach ( string pswd in pswds )
                 {
-                    if ( this._DTGM_.Available == 0 )
+                    byte[] bpsw = Encoding.UTF8.GetBytes( pswd );
+
+                    await this._DTGM_.SendAsync( bpsw, pswd.Length, IPAddress.Broadcast.ToString(), Bridge._dPRT_ );
+                
+                    var timer = Task.Delay( 500 );
+
+                    while ( this._SYNC_.Continue && !timer.IsCompleted )
                     {
-                        await Task.Delay( 10 );
+                        if ( this._DTGM_.Available == 0 )
+                        {
+                            await Task.Delay( 10 );
 
-                        continue;
+                            continue;
+                        }
+                        var rspc = await this._DTGM_.ReceiveAsync();
+
+                        string[] elmts = Encoding.UTF8.GetString( rspc.Buffer ).Split( " : " );
+
+                        if ( elmts.Length == 2 )
+                        {
+                            Server serv = new ( elmts[ 0 ], int.Parse( elmts[ 1 ] ) );
+
+                            if ( !this._ETTYs_.Contains( serv ) ) this._ETTYs_.Add( serv );
+                        }
                     }
-                    var rspc = await this._DTGM_.ReceiveAsync();
+                    Bridge._ADD_?.Invoke( [ .. this._ETTYs_ ] );
 
-                    string[] elmts = Encoding.UTF8.GetString( rspc.Buffer ).Split( " : " );
-
-                    if ( elmts.Length == 2 )
-                    {
-                        Server serv = new ( elmts[ 0 ], int.Parse( elmts[ 1 ] ) );
-
-                        if ( !this._ETTYs_.Contains( serv ) ) this._ETTYs_.Add( serv );
-                    }
+                    await Task.Delay( 500 );
                 }
-                Bridge._ADD_?.Invoke( [ .. this._ETTYs_ ] );
-
-                await Task.Delay( 500 );
             }
             this._SYNC_.Stop();
         });
@@ -469,12 +522,23 @@ internal sealed   class rtServer : rtEntity
 
             if ( this._fREQ_ == 0 )
             {
-                Bridge._OPCDs_[ elmts[ 0 ] ]._sEVNT_?.Invoke( clnt, [ .. this._eQUE_ ] );
-
+                if ( Bridge._OPCDs_[ elmts[ 0 ] ]._sEVNT_ != null )
+                {
+                    foreach ( Action < Client, string[] > func in Bridge._OPCDs_[ elmts[ 0 ] ]._sEVNT_! )
+                    {
+                        func.Invoke( clnt, [ .. this._eQUE_ ] );
+                    }
+                }
                 this._eQUE_ = [];
             }
         }
-        else Bridge._OPCDs_[ elmts[ 0 ] ]._sEVNT_?.Invoke( clnt, elmts[ 1 .. ] );
+        else if ( Bridge._OPCDs_[ elmts[ 0 ] ]._sEVNT_ != null )
+        {
+            foreach ( Action < Client, string[] > func in Bridge._OPCDs_[ elmts[ 0 ] ]._sEVNT_! )
+            {
+                func.Invoke( clnt, elmts[ 1 .. ] );
+            }
+        }
     }
 
     /// <summary>

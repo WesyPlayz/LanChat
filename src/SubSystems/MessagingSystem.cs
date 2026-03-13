@@ -1,15 +1,18 @@
 ﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED   : 3/11/2026 08:07
+/// UPDATED   : 3/11/2026 22:29
 /// 
 /// REMAINING :
+///     Renderer.Refresh        ()
+///     Renderer.Render_Upward  ()
+///     Renderer.Render_Downward()
+///     
 ///     Storage CLASS
 
 #region GENERAL HEADER
 
 using System.Windows;
 using System.Windows.Controls;
-using System.Net.Sockets;
 
 #endregion
 #region LANCHAT HEADER
@@ -31,8 +34,8 @@ public static class Messager
 {
     #region PUBLIC   STATIC FIELDS
 
-    public static string TIME  = "TIME" ;
-    public static string COUNT = "COUNT";
+    public const string TIME  = "TIME" ;
+    public const string COUNT = "COUNT";
 
     #endregion
     #region PRIVATE  STATIC FIELDS
@@ -266,9 +269,9 @@ public static class Messager
 
         switch ( elmts[ 0 ] )
         {
-            case    "TIME"  : Bridge.Send( clnt, DateTime.Now.ToString() ); break ;
-            case    "COUNT" : Bridge.Send( clnt, Batch.Count.ToString()  ); break ;
-            default         :                                               return;
+            case    TIME  : Bridge.Send( clnt, DateTime.Now.ToString() ); break ;
+            case    COUNT : Bridge.Send( clnt, Batch.Count.ToString()  ); break ;
+            default       :                                               return;
         }
     }
 
@@ -322,7 +325,7 @@ public static class Renderer
         Messager.Bind( _mLOD_ );
         Messager.Bind( _cSET_ );
 
-        _ = Task.Run( Refresh );
+        //_ = Task.Run( Refresh );
     }
 
     #endregion
@@ -353,6 +356,19 @@ public static class Renderer
     /// <param name = "msg"></param>
     private static void _mLOD_ ( int idx, Message msg  ) 
     {
+        Application.Current.Dispatcher.Invoke( () =>
+        {
+            FrameworkElement elmt = ( FrameworkElement )_mTMP_.LoadContent();
+
+            elmt.DataContext = msg;
+
+            _MSGs_.Children.Add( elmt );
+            _SCRL_.UpdateLayout(      );
+
+            if ( msg.Sender == Messager._NAME_ ) _SCRL_.ScrollToEnd();
+        });
+
+        /*
         if ( idx == _lIDX_ )
         {
             Application.Current.Dispatcher.Invoke( () =>
@@ -375,6 +391,7 @@ public static class Renderer
         }
         if (_lBTC_ != null) _lBTC_!._INCD_( msg );
         else                _lBTC_ = new  ( msg );
+        */
     }
 
     /// <summary>
@@ -415,6 +432,7 @@ public static class Renderer
     #endregion
     #region PUBLIC   STATIC   FUNCTIONS
 
+    /*
     /// <summary>
     /// 
     /// </summary>
@@ -568,6 +586,7 @@ public static class Renderer
         }
         _SCRL_.ScrollToVerticalOffset( _SCRL_.VerticalOffset - height );
     }
+    */
 
     #endregion
 }
