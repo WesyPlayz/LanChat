@@ -12,40 +12,170 @@
 ## Brief Use Cases
 
 ### UC1 : Choose Server
-- Primary Actor: User
-- Goal: Host a chat group.
+- Primary Actor   : User
+- Goal            : Host a chat group.
+
+- Preconditions   : 
+  App is in progress and the initialization window is open; 
+App awaits user's runtime decision.
+- Success Outcome : 
+  The user is brought to the terminal window.
+
+- Main Flow       :
+1. The user selects the server runtime mode.
+2. The app processes the selected mode.
+3. The initialization window is closed and the terminal window is opened.
+
+- Alternate Flows :
+  blank...
 
 ### UC2 : Choose Local Host
-- Primary Actor: User
-- Goal: Host and participate in a chat group.
+- Primary Actor   : User
+- Goal            : Host and participate in a chat group.
+
+- Preconditions   : 
+  App is in progress and the initialization window is open; 
+App awaits user's runtime decision.
+- Success Outcome : 
+  The user is brought to the main chatting window with an embedded terminal.
+
+- Main Flow       :
+1. The user selects the localhost runtime mode.
+2. The app processes the selected mode.
+3. The initialization window is closed and the main chatting window is opened.
+
+- Alternate Flows :
+  blank...
 
 ### UC3 : Choose Client
-- Primary Actor: User
-- Goal: Participate in a chat group.
+- Primary Actor   : User
+- Goal            : Participate in a chat group.
+
+- Preconditions   : 
+  App is in progress and the initialization window is open; 
+App awaits user's runtime decision.
+- Success Outcome : 
+  The user is brought to the main chatting window.
+
+- Main Flow       :
+1. The user selects the client runtime mode.
+2. The app processes the selected mode.
+3. The initialization window is closed and the main chatting window is opened.
+
+- Alternate Flows :
+  blank...
 
 ### UC4 : Start Server
 - Primary Actor: Administrator
 - Goal: Allow clients to connect.
 
+- Preconditions   : 
+  The app is in the server mode and terminal window or in the localhost mode and main chatting 
+window with embedded terminal; no server instance is running.
+- Success Outcome : 
+  The server instance is created with a specified port and password; the server begins accepting 
+connections.
+
+- Main Flow       :
+1. The administrator enters the command to startup a server.
+2. The administrator is prompted to enter a port and password.
+3. The app validates the port.
+4. The app initializes the server instance.
+5. The app activates the connection listener.
+
+- Alternate Flows :
+A1. Invalid port number ( occupied, out of bounds ) -> App rejects the requested port number and signals a warning.
+A2. Server already running -> App rejects the request and signals a warning.
+
 ### UC5 : Log In
-- Primary Actor: User
-- Goal: Join a server.
+- Primary Actor   : User
+- Goal            : Join a server.
+
+- Preconditions   : 
+  The app is in the login page of the main chatting window; User is within the client runtime mode.
+- Success Outcome : 
+  The user is connected to a server, logged in, and able to chat.
+
+- Main Flow       :
+1. The user is prompted to select or discover a server.
+2. The user is prompted to enter a username and password.
+3. App validates whether username and password exist.
+4. The user connects to the server.
+5. The user begins chatting.
+
+- Alternate Flows :
+A1. Invalid server password ( server with requested password does not exist ) -> no new server is added to list.
+A2. Invalid password ( if username exist ) -> App rejecets the attempt and signals a warning.
 
 ### UC6 : Shutdown Server
-- Primary Actor: Adminstrator
-- Goal: Close out chat group and disconnect clients.
+- Primary Actor   : Adminstrator
+- Goal            : Close out chat group and disconnect clients.
+
+- Preconditions   : 
+  The app is in the server mode and terminal window or in the localhost mode and main chatting 
+window with embedded terminal; no server instance is running.
+- Success Outcome : 
+  The server instance is shut down and data is saved to drive.
+
+- Main Flow       :
+1. The administrator enters the command to shutdown server.
+2. The app disconnects all clients.
+3. The app begins saving data.
+4. The app discards the server instance.
+
+- Alternate Flows :
+A1. Administrator exits app ( server still active ) -> The app automatically shuts down server, disconnecting all clients.
 
 ### UC7 : Log Out
-- Primary Actor: User
-- Goal: Disconnect from server.
+- Primary Actor   : User
+- Goal            : Disconnect from server.
+
+- Preconditions   : 
+  The app is in the main chatting window; User is within the client runtime mode.
+- Success Outcome : 
+  The user is disconnected from the server and logged out, returned back to the login page of the main chatting window.
+
+- Main Flow       :
+1. The user selects the logout button.
+2. The user is logged out of their server dedicated account.
+3. The user returns to the login page.
+
+- Alternate Flows :
+A1. The user exits the app ( still logged in ) -> app automatically logs user out.
 
 ### UC8 : Send Message
-- Primary Actor: User
-- Goal: Talk to other users.
+- Primary Actor   : User
+- Goal            : Talk to other users.
+
+- Preconditions   : 
+  The app is in the main chatting window; User is within the client runtime mode.
+- Success Outcome : 
+  The user sees the message pop up in the scroll space. Other user's can see it as well.
+
+- Main Flow       :
+1. The user types in anything to the text box.
+2. The user enters.
+3. The message is displayed on everyone's end.
+
+- Alternate Flows :
+  Blank...
 
 ### UC9 : Receive Message
-- Primary Actor: User
-- Goal: Read what other users say.
+- Primary Actor   : User
+- Goal            : Read what other users say.
+
+- Preconditions   : 
+  The app is in the main chatting window; User is within the client runtime mode.
+- Success Outcome : 
+  The user can see other users messages.
+
+- Main Flow       :
+1. The user waits for others to message.
+2. A message appears in the scroll space.
+3. The user reads the message.
+
+- Alternate Flows :
+  Blank...
 
 ## Use Case Traceability
 
