@@ -6,15 +6,21 @@
 
 #region GENERAL HEADER
 
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
+using LanChat.SubSystem.Messaging;
 using LanChat.SubSystem.Network;
+using LanChat.SubSystem.Scheduling;
+
 
 
 #endregion
 #region LANCHAT HEADER
 
 using LanChat.SubSystem.Serialization;
+using LanChat.SubSystem.UserInterface;
 
 #endregion
 
@@ -27,23 +33,29 @@ namespace LanChat.SubSystem.Authentication;
 /// </summary>
 public static class Registry 
 {
-    private static Dictionary < string, User > _LIST_ = []  ;
+    private static Dictionary < string, User > _LIST_ = []   ;
 
-    private static Action < User[] >?          _ADD_  = null;
+    private static Action < User[] >?          _ADD_  = null ;
+
+    private static Account                     _ACC_  = null!;
+
+    private static bool actv = false;
 
     #region PUBLIC   STATIC INITIALIZERS
 
     /// <summary>
     /// 
     /// </summary>
-    /// <param name = "name"></param>
-    public static void Initialize ( Bridge.Mode mode, string name ) 
+    /// <param name = "mode"></param>
+    public static void Initialize ( Bridge.Mode mode ) 
     {
         if ( !Bridge.Active ) return;
-        /*
+
         switch ( mode )
         {
             case Bridge.Mode.CNT :
+                _ACC_ = new User();
+
                 Bridge.Bind( Bridge.NXT, _NEXT_CLIENT_ );
             break;
 
@@ -51,11 +63,82 @@ public static class Registry
                 Bridge.Bind( Bridge.SND, _SEND_SERVER_ );
                 Bridge.Bind( Bridge.REQ, _RQST_SERVER_ );
             break;
-        }*/
+        }
+    }
+
+    #endregion
+
+    public static void Start () 
+    {
+        if ( actv ) return;
+
+        actv = true;
+
+        Task.Run( async () =>
+        {
+            while ( actv )
+            {
+                Request( "CLIENTS" );
+                foreach (User user in _LIST_.Values) Console.WriteLine(user.ToString());
+                if ( _LIST_.Count != 0 ) _ADD_?.Invoke( [ .. _LIST_.Values ] );
+
+                await Task.Delay( 500 );
+            }
+        });
+    }
+
+    public static void Stop ()
+    {
+        actv = false;
+    }
+
+    #region PUBLIC   STATIC VALIDATION
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "urnm"></param>
+    /// <param name = "pswd"></param>
+    /// <returns></returns>
+    public static bool Authenticate ( string urnm, string pswd ) 
+    {
+        if ( _LIST_.ContainsKey( urnm ) )
+        {
+            if ( !_LIST_[ urnm ].Authenticate( pswd ) ) return false;
+
+            _ACC_.Active = true;
+
+            Send( _ACC_.ToString() );
+        }
+        if ( _ACC_ == null ) return false;
+
+        _ACC_.Username = urnm;
+        _ACC_.Set( pswd );
+        _ACC_.Active = true;
+
+        Send( _ACC_.ToString() );
+
+        return true;
+    }
+
+    public static void Leave ( )
+    {
+        _ACC_.Active = false;
+
+        Send( _ACC_.ToString() );
     }
 
     #endregion
     #region PUBLIC   STATIC COMMUNICATORS
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "pyld"></param>
+    public static void Send ( string pyld )
+    {
+        Bridge.Send( pyld );
+    }
 
     /// <summary>
     /// 
@@ -88,32 +171,29 @@ public static class Registry
     /// </summary>
     /// <param name = "elmts"></param>
     private static void _NEXT_CLIENT_ (              string[] elmts ) 
-    {/*
-        if ( !int.TryParse( elmts[ 1 ], out int bIdx ) ) return;
+    {
+        if ( elmts.Length == 1 && elmts[ 0 ] == "NULL" ) return;
+        else if ( elmts.Length < 4 ) return;
 
-        if      ( elmts[ 0 ] == "BATCH"   )
+        if ( elmts[ 0 ] != "LIST" ) return;
+
+        Console.WriteLine("L");
+
+        _LIST_.Clear();
+        
+        for ( int idx = 1; idx < elmts.Length; idx += 4 )
         {
-            if ( elmts.Length == 2 )
+            if ( !uint.TryParse( elmts[ idx + 1 ], out uint pswd ) || !uint.TryParse( elmts[ idx + 2 ], out uint auth ) || !bool.TryParse( elmts[ idx + 3 ], out bool active ) ) continue;
+            
+            User user = new ()
             {
-                _bEVT_?.Invoke( bIdx, null );
-                return;
-            }
-            Batch btch = new ();
-
-            for ( int idx = 2; idx < elmts.Length; idx += 3 )
-            {
-                if ( !DateTime.TryParse( elmts[ idx + 1 ], out DateTime time ) ) return;
-
-                btch._INCD_( new ( elmts[ idx ], time - _OFST_, elmts[ idx + 2 ] ) );
-            }
-            _bEVT_?.Invoke( bIdx, btch );
+                _ATCR_ = auth,
+                Username = elmts[ idx ],
+                _PSWD_ = pswd,
+                Active = active
+            };
+            _LIST_[ elmts[ idx ] ] = user;
         }
-        else if ( elmts[ 0 ] == "MESSAGE" )
-        {
-            if ( !DateTime.TryParse( elmts[ 3 ], out DateTime time ) ) return;
-
-            _mEVT_?.Invoke( bIdx, new( elmts[ 2 ], time - _OFST_, elmts[ 4 ] ) );
-        }*/
     }
 
     /// <summary>
@@ -122,48 +202,27 @@ public static class Registry
     /// <param name = "clnt" ></param>
     /// <param name = "elmts"></param>
     private static void _SEND_SERVER_ ( Client clnt, string[] elmts ) 
-    {/*
-        if ( elmts.Length == 3 )
+    {
+        if ( elmts.Length != 4 || !uint.TryParse( elmts[ 1 ], out uint pswd ) || !uint.TryParse( elmts[ 2 ], out uint auth ) || !bool.TryParse( elmts[ 3 ], out bool active ) ) return;
+
+        if ( !_LIST_.ContainsKey(elmts[ 0 ] ) )
         {
-            if ( !DateTime.TryParse( elmts[ 1 ], out DateTime time ) ) return;
-
-            Message msg = new ( elmts[ 0 ], time, elmts[ 2 ] );
-
-            Batch.Include( msg );
-
-            Bridge.Fill_All( $"{ 3 }"                       );
-            Bridge.Fill_All( "MESSAGE"                      );
-            Bridge.Fill_All( ( Batch.Count - 1 ).ToString() );
-            Bridge.Fill_All( msg.ToString()                 );
+            User user = new ()
+            {
+                _ATCR_ = auth,
+                Username = elmts[ 0 ],
+                _PSWD_ = pswd,
+                Active = active
+            };
+            _LIST_[ elmts[ 0 ] ] = user;
         }
-        else if ( elmts.Length == 1 )
+        else
         {
-            if ( !int.TryParse( elmts[ 0 ], out int idx ) ) return;
-
-            Batch? btch = Batch.Get( idx );
-
-            if ( btch == null )
-            {
-                Bridge.Fill( clnt, $"{ 2 }"       );
-                Bridge.Fill( clnt, "BATCH"        );
-                Bridge.Fill( clnt, idx.ToString() );
-
-                return;
-            }
-            Bridge.Fill( clnt, $"{ btch.Size + 2 }" );
-            Bridge.Fill( clnt, "BATCH"              );
-            Bridge.Fill( clnt, idx.ToString()       );
-
-            Message? cur = btch.First;
-
-            while ( cur != null )
-            {
-                Bridge.Fill( clnt, cur.ToString() );
-
-                cur = cur._NEXT_;
-            }
-        }*/
+            _LIST_[elmts[ 0 ] ].Active = active;
+        }
     }
+
+    private static bool _COLL_ = false;
 
     /// <summary>
     /// 
@@ -171,15 +230,31 @@ public static class Registry
     /// <param name = "clnt" ></param>
     /// <param name = "elmts"></param>
     private static void _RQST_SERVER_ ( Client clnt, string[] elmts ) 
-    {/*
-        if ( elmts.Length != 1 ) return;
+    {
+        if ( _COLL_ || elmts.Length != 1 ) return;
+
+        _COLL_ = true;
 
         switch ( elmts[ 0 ] )
         {
-            case    "TIME"  : Bridge.Send( clnt, DateTime.Now.ToString() ); break ;
-            case    "COUNT" : Bridge.Send( clnt, Batch.Count.ToString()  ); break ;
-            default         :                                               return;
-        }*/
+            case "CLIENTS" :
+                Console.WriteLine(_LIST_.Count);
+                if ( _LIST_.Count == 0 )
+                {
+                    Bridge.Fill( clnt, "1"   , Messager._NAME_, "RQSTSERVER" );
+                    Bridge.Fill( clnt, "NULL", Messager._NAME_, "RQSTSERVER" );
+
+                    break;
+                }
+                Bridge.Fill( clnt, ( _LIST_.Count + 1 ).ToString(), Messager._NAME_, "RQSTSERVER" );
+                Bridge.Fill( clnt, "LIST"                         , Messager._NAME_, "RQSTSERVER" );
+                
+                foreach ( User user in _LIST_.Values ) Bridge.Fill( clnt, user.ToString(), Messager._NAME_, "RQSTSERVER" );
+            break;
+
+            default : break;
+        }
+        _COLL_ = false;
     }
 
     #endregion
@@ -249,26 +324,50 @@ public static class Renderer
     /// </summary>
     private static void _DSPY_ () 
     {
+        Console.WriteLine("E");
         if ( _SCRL_ == null || _ACTV_ == null || _INAC_ == null || _uTMP_ == null ) return;
-
-        _ACTV_.Children.Clear();
-        _INAC_.Children.Clear();
+        Console.WriteLine("F");
 
         if ( _LIST_ != null )
         {
-            foreach ( User user in _LIST_ )
+            Application.Current.Dispatcher.Invoke( () =>
             {
-                Console.WriteLine( user.ToString() );
+                _ACTV_.Children.Clear();
+                _INAC_.Children.Clear();
 
-                FrameworkElement elmt = ( FrameworkElement )_uTMP_.LoadContent();
+                foreach ( User user in _LIST_ )
+                {
+                    Console.WriteLine( user.ToString() );
 
-                elmt.DataContext = user;
+                    FrameworkElement elmt = ( FrameworkElement )_uTMP_.LoadContent();
 
-                if ( user.Active ) _ACTV_.Children.Add( elmt );
-                else               _INAC_.Children.Add( elmt );
+                    Border?    stts = ( Border?    )elmt.FindName ( "Status" );
+                    TextBlock? labl = ( TextBlock? )stts?.FindName( "Label"  );
 
-                _SCRL_.UpdateLayout();
-            }
+                    elmt.DataContext = user;
+
+                    if ( user.Active )
+                    {
+                        if ( stts != null && labl != null )
+                        {
+                            stts.Background = Prefabs.Get_Brush( "Secondary1" );
+                            labl.Text       = "Active";
+                        }
+                        _ACTV_.Children.Add( elmt );
+                    }
+                    else
+                    {
+                        if ( stts != null && labl != null )
+                        {
+                            stts.Background = Prefabs.Get_Brush( "Secondary2" );
+                            labl.Text       = "Inactive";
+                        }
+                        _INAC_.Children.Add( elmt );
+                    }
+
+                    _SCRL_.UpdateLayout();
+                }
+            });
         }
     }
 
@@ -292,15 +391,15 @@ public abstract class Account
 {
     #region PROTECTED INSTANCE FIELDS
 
-    protected uint _ATCR_;
-    protected uint _PSWD_;
+    internal uint _ATCR_;
+    internal uint _PSWD_ { get; set; }
 
     #endregion
     #region PUBLIC    INSTANCE PROPERTIES
 
-    public string Username { get; private set; } = ""   ;
+    public string Username { get; set; } = ""   ;
 
-    public bool   Active   { get; private set; } = false;
+    public bool   Active { get; set; } = false;
 
     #endregion
 
@@ -324,7 +423,19 @@ public abstract class Account
     /// 
     /// </summary>
     /// <returns></returns>
-    public override string ToString () => $"{ this.Username }{ Serializer.SPLITTER }{ this.Active }";
+    public override string ToString () => $"{ this.Username }{ Serializer.SPLITTER }{ this._PSWD_ }{ Serializer.SPLITTER }{ this._ATCR_ }{ Serializer.SPLITTER }{ this.Active }";
+
+    #endregion
+    #region PUBLIC INSTANCE FUNCTIONS
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "pswd"></param>
+    public void Set( string pswd )
+    {
+        this._PSWD_ = Hash( pswd ) * this._ATCR_;
+    }
 
     #endregion
     #region PROTECTED INSTANCE FUNCTIONS
@@ -338,6 +449,15 @@ public abstract class Account
     }
 
     #endregion
+
+    internal uint Hash(string input)
+    {
+        using var sha = System.Security.Cryptography.SHA256.Create();
+        byte[] bytes  = Encoding.UTF8.GetBytes(input);
+        byte[] hash   = sha.ComputeHash(bytes);
+
+        return BitConverter.ToUInt32(hash, 0);
+    }
 }
 
 // SEALED CLASSES //
@@ -347,6 +467,13 @@ public abstract class Account
 /// </summary>
 public sealed   class User     : Account
 {
+    // CONSTRUCTORS //
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public User () => this._AUTH_();
+
     #region INTERNAL OVERRIDE FUNCTIONS
 
     /// <summary>
@@ -360,6 +487,18 @@ public sealed   class User     : Account
     }
 
     #endregion
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "pswd"></param>
+    /// <returns></returns>
+    public bool Authenticate ( string pswd ) 
+    {
+        if ( Hash( pswd ) * _ATCR_ == _PSWD_ ) return true;
+
+        return false;
+    }
 }
 
 /// <summary>

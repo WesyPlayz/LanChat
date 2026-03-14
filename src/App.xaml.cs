@@ -13,6 +13,7 @@ using System.Windows;
 
 using LanChat.SubSystem.Network;
 using LanChat.SubSystem.Messaging;
+using LanChat.SubSystem.Authentication;
 using LanChat.SubSystem.UserInterface;
 using LanChat.SubSystem.Debugging;
 
@@ -20,6 +21,9 @@ using LanChat.SubSystem.Debugging;
 
 namespace LanChat.Runtime;
 
+/// <summary>
+/// 
+/// </summary>
 public partial class App : Application 
 {
     #region INTERNAL  ENUMS
@@ -82,8 +86,6 @@ public partial class App : Application
 
         win?.Close();
 
-        Debug.AllocConsole();
-
         this.InitWindow = new ( this );
 
         this.InitWindow.Show();
@@ -102,11 +104,11 @@ public partial class App : Application
 
         this.TermWindow = new TermWindow( this );
 
-        this.TermWindow.Show();
-
-        Bridge.Initialize( Bridge.Mode.SRV );
-        Bridge.Start(); // TEMP
-        Messager.Initialize( Bridge.Mode.SRV, "SERVER" );
+        this.TermWindow.Show(                           );
+        Bridge.Initialize   ( Bridge.Mode.SRV           );
+        Registry.Initialize ( Bridge.Mode.SRV           );
+        Bridge.Start        (                           );
+        Messager.Initialize ( Bridge.Mode.SRV, "SERVER" );
     }
 
     /// <summary>
@@ -124,6 +126,7 @@ public partial class App : Application
 
         this.MainWindow.Show(                                                          );
         Bridge.Initialize   ( ext == Extention.NIL ? Bridge.Mode.CNT : Bridge.Mode.SRV );
+        Registry.Initialize ( ext == Extention.NIL ? Bridge.Mode.CNT : Bridge.Mode.SRV );
         Bridge.Start        (                                                          );
     }
 
@@ -143,11 +146,6 @@ public partial class App : Application
             default                 :                  break;
         }
     }
-
-    #endregion
-    #region INTERNAL INSTANCE RUNTIME MANAGEMENT
-
-
 
     #endregion
 }

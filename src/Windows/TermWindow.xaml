@@ -26,5 +26,5 @@
         AllowsTransparency = "True"
         Background         = "Transparent"
 >
-    <Grid></Grid>
+    <Grid/>
 </Window>

@@ -1,26 +1,29 @@
 ﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED   : 3/13/2026 09:38
+/// UPDATED   : 3/13/2026 11:00
 /// 
-/// REMAINING :
-///     Login   ()
+/// REMAINING : FINISHED ( SUBJECT TO UPDATE )
 
 #region GENERAL HEADER
 
 using System.Windows;
+
+using System.Windows.Input;
+
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Windows.Input;
+
 using System.Windows.Media;
 using System.Windows.Media.Effects;
 
 #endregion
 #region LANCHAT HEADER
 
-using LanChat.SubSystem.Input;
 using LanChat.SubSystem.Network;
-using LanChat.SubSystem.UserInterface;
+using LanChat.SubSystem.Authentication;
 using LanChat.SubSystem.Messaging;
+using LanChat.SubSystem.Input;
+using LanChat.SubSystem.UserInterface;
 
 #endregion
 
@@ -80,12 +83,12 @@ public partial class MainWindow : Window
         this._lINIT_(      );
     }
 
-    #region INTERNAL INSTANCE INITIALIZERS
+    #region PRIVATE INSTANCE INITIALIZERS
 
     /// <summary>
     /// 
     /// </summary>
-    internal void _lINIT_ () 
+    private void _lINIT_ () 
     {
         this.Screen_Space.Child = null;
 
@@ -214,7 +217,7 @@ public partial class MainWindow : Window
     /// <summary>
     /// 
     /// </summary>
-    internal void _cINIT_ () 
+    private void _cINIT_ () 
     {
         this.Screen_Space.Child = null;
         
@@ -327,16 +330,17 @@ public partial class MainWindow : Window
             ( Key.Tab  , [ this.Tab  ] )
         ]);
         SubSystem.Authentication.Renderer.Start();
+        Registry.Start();
     }
 
     #endregion
-    #region PRIVATE  INSTANCE TRANSFORMERS
+    #region PRIVATE INSTANCE TRANSFORMERS
 
     /// <summary>
     /// 
     /// </summary>
     /// <param name = "input"></param>
-    private void Drag     ( object _, MouseButtonEventArgs input ) 
+    private void Drag       ( object _, MouseButtonEventArgs input ) 
     { 
         if ( input.ButtonState == MouseButtonState.Pressed ) DragMove(); 
     }
@@ -345,7 +349,7 @@ public partial class MainWindow : Window
     /// 
     /// </summary>
     /// <param name = "input"></param>
-    private void Dampener ( object _, MouseWheelEventArgs  input ) 
+    private void Dampener   ( object _, MouseWheelEventArgs  input ) 
     {
         //this._CTPG_._mPNL_.ScrollToVerticalOffset( this._CTPG_._mPNL_.VerticalOffset - input.Delta * 0.25 );
 
@@ -355,22 +359,31 @@ public partial class MainWindow : Window
     /// <summary>
     /// 
     /// </summary>
-    private void Minimize   ( object _, RoutedEventArgs __ ) => this.WindowState = WindowState.Minimized;
+    private void Minimize   ( object _, RoutedEventArgs      __    ) 
+    {
+        this.WindowState = WindowState.Minimized;
+    }
     
     /// <summary>
     /// 
     /// </summary>
-    private void Fullscreen ( object _, RoutedEventArgs __ ) => this.WindowState = (
-        this.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized
-    );
+    private void Fullscreen ( object _, RoutedEventArgs      __    ) 
+    {
+        this.WindowState = this.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+    }
     
     /// <summary>
     /// 
     /// </summary>
-    private void Exit       ( object _, RoutedEventArgs __ ) => this._APP_._EXIT_( App.Integration.PTL, this );
+    private void Exit       ( object _, RoutedEventArgs      __    ) 
+    {
+        if (this._PAGE_ is Chat_Page ctpg ) Registry.Leave();
+
+        this._APP_._EXIT_( App.Integration.FUL, this );
+    }
 
     #endregion
-    #region PRIVATE  INSTANCE EVENTS
+    #region PRIVATE INSTANCE EVENTS
 
     /// <summary>
     /// 
@@ -497,7 +510,13 @@ public partial class MainWindow : Window
     /// </summary>
     private void Login      ( object _   , RoutedEventArgs        __   ) 
     {
-        if ( this._PAGE_ is not Login_Page lnpg ) return;
+        if ( 
+            this._PAGE_ is not Login_Page lnpg              || 
+            string.IsNullOrWhiteSpace( lnpg.Username.Text ) ||
+            string.IsNullOrWhiteSpace( lnpg.Password.Text )
+        ) return;
+
+        if ( !Registry.Authenticate( lnpg.Username.Text, lnpg.Password.Text ) ) return;
 
         this._cINIT_       (                                     );
         Messager.Initialize( Bridge.Mode.CNT, lnpg.Username.Text );

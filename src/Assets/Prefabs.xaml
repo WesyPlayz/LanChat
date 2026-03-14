@@ -17,6 +17,8 @@
     <SolidColorBrush x:Key = "Primary6"    Color = "#1f1f1f"></SolidColorBrush>
     
     <SolidColorBrush x:Key = "Secondary0"  Color = "#04bff0"></SolidColorBrush>
+    <SolidColorBrush x:Key = "Secondary1"  Color = "#5bb450"></SolidColorBrush>
+    <SolidColorBrush x:Key = "Secondary2"  Color = "#dd0000"></SolidColorBrush>
     
     <SolidColorBrush x:Key = "Ternary0"    Color = "#161616"></SolidColorBrush>
     <SolidColorBrush x:Key = "Ternary1"    Color = "#000000"></SolidColorBrush>
@@ -780,7 +782,42 @@
     <!-- ELEMENT TEMPLATES -->
 
     <DataTemplate  x:Key = "Client">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width = "*"   />
+                <ColumnDefinition Width = "auto"/>
+            </Grid.ColumnDefinitions>
 
+            <TextBlock
+        Text="{ Binding Username }"
+    
+        Grid.Column = "0"
+        
+        FontSize="20"
+    
+        Foreground = "{ StaticResource Primary0 }"
+    
+        VerticalAlignment = "Center"
+    />
+
+            <Border
+        x:Name="Status"
+        Grid.Column = "1"
+        
+        CornerRadius="10"
+        
+        Background = "Green"
+    >
+                <TextBlock
+            x:Name="Label"
+            Text="Active"
+            
+            Foreground="{ StaticResource Primary0 }"
+            
+            Padding="25 5"
+        />
+            </Border>
+        </Grid>
     </DataTemplate>
 
     <DataTemplate  x:Key = "Server">

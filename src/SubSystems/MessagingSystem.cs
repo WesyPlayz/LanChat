@@ -1,6 +1,6 @@
 ﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED   : 3/11/2026 22:29
+/// UPDATED   : 3/13/2026 14:35
 /// 
 /// REMAINING :
 ///     Renderer.Refresh        ()
@@ -224,10 +224,10 @@ public static class Messager
 
             Batch.Include( msg );
 
-            Bridge.Fill_All( $"{ 3 }"                       );
-            Bridge.Fill_All( "MESSAGE"                      );
-            Bridge.Fill_All( ( Batch.Count - 1 ).ToString() );
-            Bridge.Fill_All( msg.ToString()                 );
+            Bridge.Fill_All( $"{ 3 }"                      , _NAME_, "SENDSERVER" );
+            Bridge.Fill_All( "MESSAGE"                     , _NAME_, "SENDSERVER" );
+            Bridge.Fill_All( ( Batch.Count - 1 ).ToString(), _NAME_, "SENDSERVER" );
+            Bridge.Fill_All( msg.ToString()                , _NAME_, "SENDSERVER" );
         }
         else if ( elmts.Length == 1 )
         {
@@ -237,21 +237,21 @@ public static class Messager
 
             if ( btch == null )
             {
-                Bridge.Fill( clnt, $"{ 2 }"       );
-                Bridge.Fill( clnt, "BATCH"        );
-                Bridge.Fill( clnt, idx.ToString() );
+                Bridge.Fill( clnt, $"{ 2 }"      , _NAME_, "SENDSERVER" );
+                Bridge.Fill( clnt, "BATCH"       , _NAME_, "SENDSERVER" );
+                Bridge.Fill( clnt, idx.ToString(), _NAME_, "SENDSERVER" );
 
                 return;
             }
-            Bridge.Fill( clnt, $"{ btch.Size + 2 }" );
-            Bridge.Fill( clnt, "BATCH"              );
-            Bridge.Fill( clnt, idx.ToString()       );
+            Bridge.Fill( clnt, $"{ btch.Size + 2 }", _NAME_, "SENDSERVER" );
+            Bridge.Fill( clnt, "BATCH"             , _NAME_, "SENDSERVER" );
+            Bridge.Fill( clnt, idx.ToString()      , _NAME_, "SENDSERVER" );
 
             Message? cur = btch.First;
 
             while ( cur != null )
             {
-                Bridge.Fill( clnt, cur.ToString() );
+                Bridge.Fill( clnt, cur.ToString(), _NAME_, "SENDSERVER" );
 
                 cur = cur._NEXT_;
             }

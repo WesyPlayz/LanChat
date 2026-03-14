@@ -14,7 +14,12 @@ namespace LanChat.Runtime;
 public partial class TermWindow : Window
 {
     internal App _APP_;
-    public TermWindow ( App app )
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "app"></param>
+    public TermWindow ( App app ) 
     {
         InitializeComponent();
 

@@ -1,11 +1,10 @@
 ﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED   : 3/13/2026 04:05
+/// UPDATED   : 3/13/2026 14:35
 ///
 /// REMAINING :
 ///     Client   CLASS
 ///     Server   CLASS
-///     Renderer CLASS
 
 #region GENERAL HEADER
 
@@ -18,6 +17,7 @@ using System.Windows.Controls;
 #region LANCHAT HEADER
 
 using LanChat.SubSystem.Network.Runtime;
+using LanChat.SubSystem.Serialization;
 using LanChat.SubSystem.UserInterface;
 
 #endregion
@@ -232,9 +232,9 @@ public static class     Bridge
     /// 
     /// </summary>
     /// <param name = "pyld"></param>
-    public static void Fill        (              string pyld ) 
+    public static void Fill        ( string pyld, string name, string src ) 
     {
-        if ( _RNTM_ is rtClient clnt ) clnt._SEND_( FIL, pyld );
+        if ( _RNTM_ is rtClient clnt ) clnt._SEND_( FIL, pyld, name + src );
     }
 
     /// <summary>
@@ -242,18 +242,18 @@ public static class     Bridge
     /// </summary>
     /// <param name = "clnt"></param>
     /// <param name = "pyld"></param>
-    public static void Fill        ( Client clnt, string pyld ) 
+    public static void Fill        ( Client clnt, string pyld, string name, string src ) 
     {
-        if ( _RNTM_ is rtServer serv ) serv._SEND_( FIL, clnt._STRM_, pyld );
+        if ( _RNTM_ is rtServer serv ) serv._SEND_( FIL, clnt._STRM_, pyld, name + src );
     }
 
     /// <summary>
     /// 
     /// </summary>
     /// <param name = "pyld"></param>
-    public static void Fill_All    (              string pyld ) 
+    public static void Fill_All    ( string pyld, string name, string src ) 
     {
-        if ( _RNTM_ is rtServer serv ) serv._SEND_( FIL, pyld );
+        if ( _RNTM_ is rtServer serv ) serv._SEND_( FIL, pyld, name + src );
     }
 
     /// <summary>
