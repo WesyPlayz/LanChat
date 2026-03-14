@@ -54,8 +54,7 @@
               "RelativeToolTip": "SubSystems\\SchedulingSystem.cs",
               "ViewState": "AgIAAD4AAAAAAAAAAAAQwGYAAAASAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-14T06:25:01.336Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-14T06:25:01.336Z"
             },
             {
               "$type": "Document",
@@ -65,7 +64,7 @@
               "RelativeDocumentMoniker": "SubSystems\\NetworkRuntimeSystem.cs",
               "ToolTip": "C:\\Users\\owner\\Documents\\GitHub\\LanChat\\src\\SubSystems\\NetworkRuntimeSystem.cs",
               "RelativeToolTip": "SubSystems\\NetworkRuntimeSystem.cs",
-              "ViewState": "AgIAAMEBAAAAAAAAAAAuwNoBAAAcAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACYAAAAoAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-03-14T06:05:24.904Z",
               "EditorCaption": ""
@@ -80,8 +79,7 @@
               "RelativeToolTip": "SubSystems\\NetworkSystem.cs",
               "ViewState": "AgIAAIoAAAAAAAAAAAAkwJsAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-14T06:04:08.416Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-14T06:04:08.416Z"
             },
             {
               "$type": "Document",
@@ -93,8 +91,7 @@
               "RelativeToolTip": "SubSystems\\UserInterfaceSystem.cs",
               "ViewState": "AgIAAAYAAAAAAAAAAAAAACEAAAAOAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-14T05:50:21.731Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-14T05:50:21.731Z"
             },
             {
               "$type": "Document",
@@ -106,8 +103,7 @@
               "RelativeToolTip": "Windows\\MainWindow.xaml.cs",
               "ViewState": "AgIAAI0BAAAAAAAAAAAYwPYBAABFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-14T04:28:21.524Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-14T04:28:21.524Z"
             },
             {
               "$type": "Document",
@@ -132,8 +128,7 @@
               "RelativeToolTip": "App.xaml.cs",
               "ViewState": "AgIAAGMAAAAAAAAAAAAiwGsAAAA6AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-12T05:51:52.955Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-12T05:51:52.955Z"
             }
           ]
         }
