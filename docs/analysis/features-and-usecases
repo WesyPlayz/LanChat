@@ -29,6 +29,10 @@ App awaits user's runtime decision.
 - Alternate Flows :
   blank...
 
+** Implementation Evidence **
+- Entry point: https://github.com/WesyPlayz/LanChat/blob/WesyPlayz-patch-5/src/Windows/InitWindow.xaml.cs
+- Entry point: https://github.com/WesyPlayz/LanChat/blob/WesyPlayz-patch-5/src/App.xaml.cs
+
 ### UC2 : Choose Local Host
 - Primary Actor   : User
 - Goal            : Host and participate in a chat group.
@@ -47,6 +51,11 @@ App awaits user's runtime decision.
 - Alternate Flows :
   blank...
 
+// NOTE THIS WAS A CUT FEATURE DUE TO TIME CONSTRAINTS //
+** Implementation Evidence **
+- Entry point: https://github.com/WesyPlayz/LanChat/blob/WesyPlayz-patch-5/src/Windows/InitWindow.xaml.cs
+- Entry point: https://github.com/WesyPlayz/LanChat/blob/WesyPlayz-patch-5/src/App.xaml.cs
+
 ### UC3 : Choose Client
 - Primary Actor   : User
 - Goal            : Participate in a chat group.
@@ -64,6 +73,10 @@ App awaits user's runtime decision.
 
 - Alternate Flows :
   blank...
+
+** Implementation Evidence **
+- Entry point: https://github.com/WesyPlayz/LanChat/blob/WesyPlayz-patch-5/src/Windows/InitWindow.xaml.cs
+- Entry point: https://github.com/WesyPlayz/LanChat/blob/WesyPlayz-patch-5/src/App.xaml.cs
 
 ### UC4 : Start Server
 - Primary Actor: Administrator
@@ -87,6 +100,9 @@ connections.
 A1. Invalid port number ( occupied, out of bounds ) -> App rejects the requested port number and signals a warning.
 A2. Server already running -> App rejects the request and signals a warning.
 
+** Implementation Evidence **
+- Entry point: https://github.com/WesyPlayz/LanChat/blob/WesyPlayz-patch-5/src/Windows/TermWindow.xaml.cs
+
 ### UC5 : Log In
 - Primary Actor   : User
 - Goal            : Join a server.
@@ -107,6 +123,10 @@ A2. Server already running -> App rejects the request and signals a warning.
 A1. Invalid server password ( server with requested password does not exist ) -> no new server is added to list.
 A2. Invalid password ( if username exist ) -> App rejecets the attempt and signals a warning.
 
+** Implementation Evidence **
+- Entry point: https://github.com/WesyPlayz/LanChat/blob/WesyPlayz-patch-5/src/Windows/MainWindow.xaml.cs
+- Entry point: https://github.com/WesyPlayz/LanChat/blob/WesyPlayz-patch-5/src/SubSystems/AuthenticationSystem.cs
+
 ### UC6 : Shutdown Server
 - Primary Actor   : Adminstrator
 - Goal            : Close out chat group and disconnect clients.
@@ -126,6 +146,9 @@ window with embedded terminal; no server instance is running.
 - Alternate Flows :
 A1. Administrator exits app ( server still active ) -> The app automatically shuts down server, disconnecting all clients.
 
+** Implementation Evidence **
+- Entry point: https://github.com/WesyPlayz/LanChat/blob/WesyPlayz-patch-5/src/Windows/TermWindow.xaml.cs
+
 ### UC7 : Log Out
 - Primary Actor   : User
 - Goal            : Disconnect from server.
@@ -142,6 +165,9 @@ A1. Administrator exits app ( server still active ) -> The app automatically shu
 
 - Alternate Flows :
 A1. The user exits the app ( still logged in ) -> app automatically logs user out.
+
+** Implementation Evidence **
+- Entry point: https://github.com/WesyPlayz/LanChat/blob/WesyPlayz-patch-5/src/Windows/MainWindow.xaml.cs
 
 ### UC8 : Send Message
 - Primary Actor   : User
@@ -160,6 +186,10 @@ A1. The user exits the app ( still logged in ) -> app automatically logs user ou
 - Alternate Flows :
   Blank...
 
+** Implementation Evidence **
+- Entry point: https://github.com/WesyPlayz/LanChat/blob/WesyPlayz-patch-5/src/Windows/MainWindow.xaml.cs
+- Entry point: https://github.com/WesyPlayz/LanChat/blob/WesyPlayz-patch-5/src/SubSystems/MessagingSystem.cs
+
 ### UC9 : Receive Message
 - Primary Actor   : User
 - Goal            : Read what other users say.
@@ -176,6 +206,9 @@ A1. The user exits the app ( still logged in ) -> app automatically logs user ou
 
 - Alternate Flows :
   Blank...
+
+** Implementation Evidence **
+- Entry point: https://github.com/WesyPlayz/LanChat/blob/WesyPlayz-patch-5/src/SubSystems/MessagingSystem.cs
 
 ## Use Case Traceability
 
