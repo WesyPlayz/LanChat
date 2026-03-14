@@ -24,3 +24,4 @@ C:\Users\owner\Documents\GitHub\LanChat\src\obj\Release\net9.0-windows\refint\Pr
 C:\Users\owner\Documents\GitHub\LanChat\src\obj\Release\net9.0-windows\Project.pdb
 C:\Users\owner\Documents\GitHub\LanChat\src\obj\Release\net9.0-windows\Project.genruntimeconfig.cache
 C:\Users\owner\Documents\GitHub\LanChat\src\obj\Release\net9.0-windows\ref\Project.dll
+C:\Users\owner\Documents\GitHub\LanChat\src\obj\Release\net9.0-windows\Build\Assets\Prefabs.baml

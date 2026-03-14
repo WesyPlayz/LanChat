@@ -217,17 +217,17 @@ public partial class TermWindow : Window
         {
             string[] elmts = this._TMPG_.Input.Text.Split(' ');
             string result = this._TMPG_.Input.Text;
-            foreach (string e in elmts) Console.WriteLine(e);
+            
             if (elmts[0] == "INIT" && elmts.Length == 4 && int.TryParse(elmts[2], out int port ))
             {
-                Console.WriteLine("Success");
                 if ( Bridge.Active ) result = "Cannot create a server while one is in progress.";
                 else
                 {
                     Bridge.Initialize   ( Bridge.Mode.SRV           );
+                    Bridge.Start(port, elmts[3]);
+
                     Registry.Initialize ( Bridge.Mode.SRV           );
                     Messager.Initialize(Bridge.Mode.SRV, elmts[1]);
-                    Bridge.Start(port, elmts[3]);
                 }
             }
             else if (elmts[0] == "END" && elmts.Length == 1 )

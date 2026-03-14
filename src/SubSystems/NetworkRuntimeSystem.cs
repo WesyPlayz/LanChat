@@ -702,7 +702,7 @@ internal sealed   class rtServer : rtEntity
                 while (this._SYNC_.Continue)
                 {
                     TcpClient clnt = await this._CONN_.AcceptTcpClientAsync();
-
+                    
                     _ = this._COMM_(clnt);
                 }
             }

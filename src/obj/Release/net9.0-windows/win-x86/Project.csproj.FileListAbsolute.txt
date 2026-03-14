@@ -413,3 +413,4 @@ C:\Users\owner\Documents\GitHub\LanChat\src\obj\Release\net9.0-windows\win-x86\r
 C:\Users\owner\Documents\GitHub\LanChat\src\obj\Release\net9.0-windows\win-x86\Project.pdb
 C:\Users\owner\Documents\GitHub\LanChat\src\obj\Release\net9.0-windows\win-x86\Project.genruntimeconfig.cache
 C:\Users\owner\Documents\GitHub\LanChat\src\obj\Release\net9.0-windows\win-x86\ref\Project.dll
+C:\Users\owner\Documents\GitHub\LanChat\src\obj\Release\net9.0-windows\win-x86\Build\Assets\Prefabs.baml
