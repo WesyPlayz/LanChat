@@ -1,8 +1,8 @@
 ﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED   : 2/23/2026 15:17
+/// UPDATED   : 3/13/2026 21:01
 ///
-/// REMAINING : ALL ( SUBJECT TO FILL )
+/// REMAINING : FINISHED ( SUBJECT TO UPDATE )
 
 #region GENERAL HEADER
 
@@ -85,6 +85,7 @@ public partial class App : Application
         if ( win != null && win is InitWindow ) return;
 
         win?.Close();
+        Debug.AllocConsole();
 
         this.InitWindow = new ( this );
 
@@ -105,10 +106,6 @@ public partial class App : Application
         this.TermWindow = new TermWindow( this );
 
         this.TermWindow.Show(                           );
-        Bridge.Initialize   ( Bridge.Mode.SRV           );
-        Registry.Initialize ( Bridge.Mode.SRV           );
-        Bridge.Start        (                           );
-        Messager.Initialize ( Bridge.Mode.SRV, "SERVER" );
     }
 
     /// <summary>
@@ -118,6 +115,8 @@ public partial class App : Application
     /// <param name = "win"></param>
     internal void _MAIN_ ( Window? win = null, Extention ext = Extention.NIL ) 
     {
+        if ( ext != Extention.NIL ) return;
+
         if ( win != null && win is MainWindow ) return;
 
         win?.Close();

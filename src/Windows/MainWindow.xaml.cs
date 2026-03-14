@@ -520,6 +520,7 @@ public partial class MainWindow : Window
 
         this._cINIT_       (                                     );
         Messager.Initialize( Bridge.Mode.CNT, lnpg.Username.Text );
+        Messager.Request   ( Messager.ALL                        );
     }
 
     /// <summary>

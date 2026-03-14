@@ -6,6 +6,7 @@
 
 #region GENERAL HEADER
 
+using System.ComponentModel.Design;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -103,8 +104,8 @@ internal sealed   class rtClient : rtEntity
         if ( !this._SYNC_.Continue || this._DTGM_ == null ) return;
 
         this._SYNC_.Close ();
-        this._SYNC_.Yield ();
         this._DTGM_!.Close();
+        this._SYNC_.Yield ();
 
         this._DTGM_ = null!;
     }
@@ -164,7 +165,7 @@ internal sealed   class rtClient : rtEntity
             }
             this._SERV_ = serv;
 
-            await this._CONN_.ConnectAsync( this._SERV_.Ip, this._SERV_.Port );
+            await this._CONN_.ConnectAsync( this._SERV_.Ip, this._SERV_.Port ).ConfigureAwait( false );
 
             this._STRM_ = this._CONN_.GetStream();
 
@@ -377,7 +378,7 @@ internal sealed   class rtClient : rtEntity
                 {
                     byte[] bpsw = Encoding.UTF8.GetBytes( pswd );
 
-                    await this._DTGM_.SendAsync( bpsw, pswd.Length, IPAddress.Broadcast.ToString(), Bridge._dPRT_ );
+                    await this._DTGM_.SendAsync( bpsw, bpsw.Length, IPAddress.Broadcast.ToString(), Bridge._dPRT_ );
                 
                     var timer = Task.Delay( 500 );
 
@@ -427,6 +428,8 @@ internal sealed   class rtServer : rtEntity
 
     #endregion
 
+    internal bool Active => this._CONN_ != null && this._DTGM_ != null;
+
     #region INTERNAL OVERRIDE FUNCTIONS
 
     /// <summary>
@@ -443,16 +446,31 @@ internal sealed   class rtServer : rtEntity
     /// <summary>
     /// 
     /// </summary>
+    internal void      _STRT_ ( int port, string password) 
+    {
+        if ( !this._SYNC_.Idle || this._CONN_ != null || this._DTGM_ != null ) return;
+
+        this._PORT_ = port;
+        this._PSWD_ = password;
+
+        this._DCVR_();
+        this._PROC_();
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
     internal override void      _STOP_ () 
     {
         if ( !this._SYNC_.Continue || this._CONN_ == null || this._DTGM_ == null ) return;
-
         this._SYNC_.Close ();
-        this._SYNC_.Yield ();
-
-        this._CONN_!.Stop ();
+        this._CONN_.Stop();
         this._DTGM_!.Close();
-
+        foreach ( Client clnt in _ETTYs_ )
+        {
+            clnt._STRM_.Close();
+        }
+        this._SYNC_.Yield ();
         this._CONN_ = null!;
         this._DTGM_ = null!;
     }
@@ -604,26 +622,36 @@ internal sealed   class rtServer : rtEntity
         this._ETTYs_.Add    ( clnt                );
         Bridge._ADD_?.Invoke( [ .. this._ETTYs_ ] );
         
-        while ( this._SYNC_.Continue )
+        try
         {
-            int bytes = await clnt._STRM_.ReadAsync( clnt.bffr, 0, clnt.bffr.Length );
-
-            if ( bytes == 0 ) break;
-            rqst += Encoding.UTF8.GetString( clnt.bffr, 0, bytes );
-
-            int rend = default;
-
-            while ( ( rend = rqst.IndexOf( Serializer.TERMINATOR ) ) != -1 )
+            while ( this._SYNC_.Continue )
             {
-                this._INVK_( clnt, rqst[ .. rend ].Trim().Split( Serializer.SPLITTER ) );
+                int bytes = await clnt._STRM_.ReadAsync( clnt.bffr, 0, clnt.bffr.Length );
 
-                rqst = rqst[ ( rend + Serializer.TERMINATOR.Length ) .. ];
+                if ( bytes == 0 ) break;
+                rqst += Encoding.UTF8.GetString( clnt.bffr, 0, bytes );
+
+                int rend = default;
+
+                while ( ( rend = rqst.IndexOf( Serializer.TERMINATOR ) ) != -1 )
+                {
+                    this._INVK_( clnt, rqst[ .. rend ].Trim().Split( Serializer.SPLITTER ) );
+
+                    rqst = rqst[ ( rend + Serializer.TERMINATOR.Length ) .. ];
+                }
             }
         }
-        clnt._ACTV_ = false;
+        catch (ObjectDisposedException)
+        {
+        }
+        finally
+        {
+            clnt._ACTV_ = false;
 
-        cntn.Close      ();
-        this._SYNC_.Stop();
+            cntn.Close();
+            this._SYNC_.Stop();
+            Console.WriteLine("COMM");
+        }
     }
 
     #endregion
@@ -655,6 +683,7 @@ internal sealed   class rtServer : rtEntity
                 }
             }
             this._SYNC_.Stop();
+            Console.WriteLine("DISC");
         });
     }
 
@@ -668,13 +697,26 @@ internal sealed   class rtServer : rtEntity
         this._CONN_.Start();
 
         Task.Run( async () => {
-            while ( this._SYNC_.Continue )
+            try
             {
-                TcpClient clnt = await this._CONN_.AcceptTcpClientAsync();
+                while (this._SYNC_.Continue)
+                {
+                    TcpClient clnt = await this._CONN_.AcceptTcpClientAsync();
 
-                _  = this._COMM_( clnt );
+                    _ = this._COMM_(clnt);
+                }
             }
-            this._SYNC_.Stop();
+            catch (ObjectDisposedException)
+            {
+            }
+            catch (InvalidOperationException)
+            {
+            }
+            finally
+            {
+                this._SYNC_.Stop();
+                Console.WriteLine("PROC");
+            }
         });
     }
 

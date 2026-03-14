@@ -149,9 +149,14 @@ public static class     Prefabs
 /// <summary>
 /// 
 /// </summary>
-public sealed class     Terminal_Page 
-{
-
+public sealed class     Terminal_Page (
+    TextBox      inpt = null!,
+    ScrollViewer scrl = null!,
+    StackPanel   cmds = null!
+){
+    public TextBox      Input            = inpt;
+    public ScrollViewer Scroll_Space     = scrl;
+    public StackPanel   Commands         = cmds;
 }
 
 /// <summary>

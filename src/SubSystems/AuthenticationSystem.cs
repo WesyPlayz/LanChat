@@ -57,7 +57,7 @@ public static class Registry
                 _ACC_ = new User();
 
                 Bridge.Bind( Bridge.NXT, _NEXT_CLIENT_ );
-            break;
+                break;
 
             case Bridge.Mode.SRV :
                 Bridge.Bind( Bridge.SND, _SEND_SERVER_ );
@@ -79,7 +79,7 @@ public static class Registry
             while ( actv )
             {
                 Request( "CLIENTS" );
-                foreach (User user in _LIST_.Values) Console.WriteLine(user.ToString());
+
                 if ( _LIST_.Count != 0 ) _ADD_?.Invoke( [ .. _LIST_.Values ] );
 
                 await Task.Delay( 500 );
@@ -177,8 +177,6 @@ public static class Registry
 
         if ( elmts[ 0 ] != "LIST" ) return;
 
-        Console.WriteLine("L");
-
         _LIST_.Clear();
         
         for ( int idx = 1; idx < elmts.Length; idx += 4 )
@@ -238,18 +236,17 @@ public static class Registry
         switch ( elmts[ 0 ] )
         {
             case "CLIENTS" :
-                Console.WriteLine(_LIST_.Count);
                 if ( _LIST_.Count == 0 )
                 {
-                    Bridge.Fill( clnt, "1"   , Messager._NAME_, "RQSTSERVER" );
-                    Bridge.Fill( clnt, "NULL", Messager._NAME_, "RQSTSERVER" );
+                    Bridge.Fill( clnt, "1"   , Messager._NAME_, "RRQSTSERVER" );
+                    Bridge.Fill( clnt, "NULL", Messager._NAME_, "RRQSTSERVER" );
 
                     break;
                 }
-                Bridge.Fill( clnt, ( _LIST_.Count + 1 ).ToString(), Messager._NAME_, "RQSTSERVER" );
-                Bridge.Fill( clnt, "LIST"                         , Messager._NAME_, "RQSTSERVER" );
+                Bridge.Fill( clnt, ( _LIST_.Count + 1 ).ToString(), Messager._NAME_, "RRQSTSERVER" );
+                Bridge.Fill( clnt, "LIST"                         , Messager._NAME_, "RRQSTSERVER" );
                 
-                foreach ( User user in _LIST_.Values ) Bridge.Fill( clnt, user.ToString(), Messager._NAME_, "RQSTSERVER" );
+                foreach ( User user in _LIST_.Values ) Bridge.Fill( clnt, user.ToString(), Messager._NAME_, "RRQSTSERVER" );
             break;
 
             default : break;
@@ -324,9 +321,7 @@ public static class Renderer
     /// </summary>
     private static void _DSPY_ () 
     {
-        Console.WriteLine("E");
         if ( _SCRL_ == null || _ACTV_ == null || _INAC_ == null || _uTMP_ == null ) return;
-        Console.WriteLine("F");
 
         if ( _LIST_ != null )
         {
@@ -337,8 +332,6 @@ public static class Renderer
 
                 foreach ( User user in _LIST_ )
                 {
-                    Console.WriteLine( user.ToString() );
-
                     FrameworkElement elmt = ( FrameworkElement )_uTMP_.LoadContent();
 
                     Border?    stts = ( Border?    )elmt.FindName ( "Status" );

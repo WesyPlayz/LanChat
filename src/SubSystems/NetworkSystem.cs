@@ -87,7 +87,15 @@ public static class     Bridge
     /// <summary>
     /// 
     /// </summary>
-    public static bool Active    => _RNTM_ != null;
+    public static bool Active
+    {
+        get
+        {
+            if ( _RNTM_ is rtServer serv ) return serv.Active;
+            
+            return _RNTM_ != null;
+        }
+    }
 
     /// <summary>
     /// 
@@ -136,7 +144,18 @@ public static class     Bridge
     /// <summary>
     /// 
     /// </summary>
-    public static void Stop  () => _RNTM_?._STOP_();
+    public static void Start ( int port, string password )
+    {
+        if ( _RNTM_ is rtServer serv ) serv._STRT_( port, password);
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public static void Stop  ()
+    {
+        _RNTM_?._STOP_();
+    }
 
     #endregion
     #region PUBLIC   STATIC MODIFIERS
