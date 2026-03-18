@@ -1,8 +1,8 @@
 ﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED   : 2/23/2026 15:17
+/// UPDATED   : 3/13/2026 21:01
 ///
-/// REMAINING : ALL ( SUBJECT TO FILL )
+/// REMAINING : FINISHED ( SUBJECT TO UPDATE )
 
 #region GENERAL HEADER
 
@@ -13,6 +13,7 @@ using System.Windows;
 
 using LanChat.SubSystem.Network;
 using LanChat.SubSystem.Messaging;
+using LanChat.SubSystem.Authentication;
 using LanChat.SubSystem.UserInterface;
 using LanChat.SubSystem.Debugging;
 
@@ -20,6 +21,9 @@ using LanChat.SubSystem.Debugging;
 
 namespace LanChat.Runtime;
 
+/// <summary>
+/// 
+/// </summary>
 public partial class App : Application 
 {
     #region INTERNAL  ENUMS
@@ -81,7 +85,6 @@ public partial class App : Application
         if ( win != null && win is InitWindow ) return;
 
         win?.Close();
-
         Debug.AllocConsole();
 
         this.InitWindow = new ( this );
@@ -102,11 +105,7 @@ public partial class App : Application
 
         this.TermWindow = new TermWindow( this );
 
-        this.TermWindow.Show();
-
-        Bridge.Initialize( Bridge.Mode.SRV );
-        Bridge.Start(); // TEMP
-        Messager.Initialize( Bridge.Mode.SRV, "SERVER" );
+        this.TermWindow.Show(                           );
     }
 
     /// <summary>
@@ -116,18 +115,18 @@ public partial class App : Application
     /// <param name = "win"></param>
     internal void _MAIN_ ( Window? win = null, Extention ext = Extention.NIL ) 
     {
+        if ( ext != Extention.NIL ) return;
+
         if ( win != null && win is MainWindow ) return;
 
         win?.Close();
 
         this.MainWindow = new MainWindow( this );
 
-        this.MainWindow.Show();
-
-        Bridge.Initialize( ext == Extention.NIL ? Bridge.Mode.CNT : Bridge.Mode.SRV );
-        Bridge.Start     (                                                          );
-        if ( Bridge.Connect( 0 ) && this.MainWindow is MainWindow mw ) mw._cINIT_();
-        Messager.Initialize( Bridge.Mode.CNT, "Ryan" );
+        this.MainWindow.Show(                                                          );
+        Bridge.Initialize   ( ext == Extention.NIL ? Bridge.Mode.CNT : Bridge.Mode.SRV );
+        Registry.Initialize ( ext == Extention.NIL ? Bridge.Mode.CNT : Bridge.Mode.SRV );
+        Bridge.Start        (                                                          );
     }
 
     /// <summary>

@@ -1,11 +1,12 @@
 ﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED   : 3/11/2026 06:41
+/// UPDATED   : 3/13/2026 16:43
 /// 
 /// REMAINING : FINISHED ( SUBJECT TO UPDATE )
 
 #region GENERAL HEADER
 
+using System.ComponentModel.Design;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -39,6 +40,12 @@ internal abstract class rtEntity
 
     #endregion
 
+    #region INTERNAL INSTANCE COMPUTED
+
+    internal int _CNT_ => _ETTYs_.Count;
+
+    #endregion
+
     #region INTERNAL  ABSTRACT FUNCTIONS
 
     internal abstract void      _STRT_ ();
@@ -57,19 +64,23 @@ internal sealed   class rtClient : rtEntity
 {
     #region PRIVATE  INSTANCE FIELDS
 
-    private List < string > _PSWDs_ = []               ;
+    private List < string >                                                            _PSWDs_ = []               ;
+    private Dictionary < string, ( List < string > _ELMTs_, int _wQUE_, int _rQUE_ ) > _fQUE_  = []               ;
 
-    private TcpClient       _CONN_  = null!            ;
-    private NetworkStream   _STRM_  = null!            ;
-    private byte[]          _BFFR_  = new byte[ 1024 ] ;
+    private TcpClient                                                                  _CONN_  = null!            ;
+    private NetworkStream                                                              _STRM_  = null!            ;
+    private byte[]                                                                     _BFFR_  = new byte[ 1024 ] ;
 
-    private Server?         _SERV_  = null             ;
-    private DateTime        _gTIM_  = DateTime.MinValue;
+    private Server?                                                                    _SERV_  = null             ;
+    private DateTime                                                                   _gTIM_  = DateTime.MinValue;
 
-    private List < string > _eQUE_  = []               ;
+    private bool                                                                       _DRNG_  = false            ;
 
-    private int             _sREQ_  = 0                ;
-    private int             _fREQ_  = 0                ;
+    #endregion
+
+    #region INTERNAL INSTANCE COMPUTED
+
+    internal bool _ISCN_ => _SERV_ != null;
 
     #endregion
 
@@ -80,7 +91,7 @@ internal sealed   class rtClient : rtEntity
     /// </summary>
     internal override void      _STRT_ () 
     {
-        if ( !this._SYNC_.Idle || this._DTGM_ != null ) return;
+        if ( !this._SYNC_.Idle ) return;
 
         this._DCVR_();
     }
@@ -93,8 +104,8 @@ internal sealed   class rtClient : rtEntity
         if ( !this._SYNC_.Continue || this._DTGM_ == null ) return;
 
         this._SYNC_.Close ();
-        this._SYNC_.Yield ();
         this._DTGM_!.Close();
+        this._SYNC_.Yield ();
 
         this._DTGM_ = null!;
     }
@@ -125,8 +136,6 @@ internal sealed   class rtClient : rtEntity
     /// <param name = "pswd"></param>
     internal       void         _STRT_ ( string pswd ) 
     {
-        if ( !this._SYNC_.Idle || this._DTGM_ != null ) return;
-
         this._DCVR_( pswd );
     }
 
@@ -156,7 +165,7 @@ internal sealed   class rtClient : rtEntity
             }
             this._SERV_ = serv;
 
-            await this._CONN_.ConnectAsync( this._SERV_.Ip, this._SERV_.Port );
+            await this._CONN_.ConnectAsync( this._SERV_.Ip, this._SERV_.Port ).ConfigureAwait( false );
 
             this._STRM_ = this._CONN_.GetStream();
 
@@ -169,6 +178,14 @@ internal sealed   class rtClient : rtEntity
         return rslt;
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    internal       void         _DSCN_ (             ) 
+    {
+        // TODO;
+    }
+
     #endregion
     #region INTERNAL INSTANCE COMMUNICATORS
 
@@ -177,17 +194,31 @@ internal sealed   class rtClient : rtEntity
     /// </summary>
     /// <param name = "cmd" ></param>
     /// <param name = "pyld"></param>
-    internal      void _SEND_ ( string   cmd  , string pyld ) 
+    /// <param name = "id"  ></param>
+    internal      void _SEND_ ( string cmd    , string pyld, string? id = null ) 
     {
         Retry rt = new();
 
         rt.Attempt_Async( () => this._STRM_ != null ).GetAwaiter().GetResult();
 
-        if      ( cmd == Bridge.FIL && this._sREQ_ == 0 && int.TryParse( pyld, out int sReq ) ) this._sREQ_ = sReq;
-        else if ( cmd == Bridge.FIL && this._sREQ_ != 0                                       )
-        {
-            cmd         = Bridge.NXT;
-            this._sREQ_--           ;
+        if      ( 
+            cmd == Bridge.FIL                                         && 
+            id  != null                                               &&
+            ( !_fQUE_.ContainsKey( id ) || _fQUE_[ id ]._wQUE_ == 0 ) &&
+            int.TryParse( pyld, out int wQue ) 
+        ){
+            pyld         = $"{ id }{ Serializer.SPLITTER }{ pyld }";
+            _fQUE_[ id ] = ( [], wQue, 0 )                         ;
+        }
+        else if ( 
+            cmd                 == Bridge.FIL && 
+            id                  != null       && 
+            _fQUE_.ContainsKey( id )          &&
+            _fQUE_[ id ]._wQUE_ != 0 
+        ){
+            cmd          = Bridge.NXT                                                            ;
+            pyld         = $"{ id }{ Serializer.SPLITTER }{ pyld }"                              ;
+            _fQUE_[ id ] = ( _fQUE_[ id ]._ELMTs_, _fQUE_[ id ]._wQUE_ - 1, _fQUE_[ id ]._rQUE_ );
         }
         byte[] rqst = Encoding.UTF8.GetBytes( $"{ cmd }{ Serializer.SPLITTER }{ pyld }{ Serializer.TERMINATOR }" );
 
@@ -198,39 +229,56 @@ internal sealed   class rtClient : rtEntity
     /// 
     /// </summary>
     /// <param name = "elmts"></param>
-    private       void _INVK_ ( string[] elmts              ) 
+    private       void _INVK_ ( string[] elmts                                 ) 
     {
         if ( elmts.Length <= 1 || !Bridge._OPCDs_.ContainsKey( elmts[ 0 ] ) ) return;
 
-        if ( elmts[ 0 ] == Bridge.FIL && elmts.Length == 2 )
+        string cmd = elmts[ 0 ];
+
+        if      ( cmd == Bridge.FIL && ( !_fQUE_.ContainsKey( elmts[ 1 ] ) || _fQUE_[ elmts[ 1 ] ]._rQUE_ == 0 ) && elmts.Length == 3 )
         {
-            if ( !int.TryParse( elmts[ 1 ], out int num ) ) return;
+            if ( !int.TryParse( elmts[ 2 ], out int num ) ) return;
+            
+            string id = elmts[ 1 ];
 
-            this._eQUE_.Clear();
+            _fQUE_[ id ] = ( _fQUE_.ContainsKey( id ) ? _fQUE_[ id ]._ELMTs_ : [], 0, num );
 
-            this._fREQ_ = num;
+            _fQUE_[ id ]._ELMTs_.Clear();
         }
-        else if ( elmts[ 0 ] == Bridge.NXT && this._fREQ_ > 0 )
+        else if ( cmd == Bridge.NXT && _fQUE_.ContainsKey( elmts[ 1 ] ) && _fQUE_[ elmts[ 1 ] ]._rQUE_ >  0 )
         {
-            for ( int idx = 1; idx < elmts.Length; idx++ ) this._eQUE_.Add( elmts[ idx ] );
+            string id = elmts[ 1 ];
 
-            this._fREQ_--;
+            for (int idx = 2; idx < elmts.Length; idx++) _fQUE_[ id ]._ELMTs_.Add( elmts[ idx ] );
 
-            if ( this._fREQ_ == 0 )
+            _fQUE_[ id ] = ( _fQUE_[ id ]._ELMTs_, _fQUE_[ id ]._wQUE_, _fQUE_[ id ]._rQUE_ - 1 );
+
+            if ( _fQUE_[ id ]._rQUE_ == 0 )
             {
-                Bridge._OPCDs_[ elmts[ 0 ] ]._cEVNT_?.Invoke( [ .. this._eQUE_ ] );
-
-                this._eQUE_ = [];
+                if ( Bridge._OPCDs_[ elmts[ 0 ] ]._cEVNT_ != null )
+                {
+                    foreach ( Action < string[] > func in Bridge._OPCDs_[ cmd ]._cEVNT_! )
+                    {
+                        func.Invoke( [ .. _fQUE_[ id ]._ELMTs_ ] );
+                    }
+                }
+                _fQUE_[ id ]._ELMTs_.Clear();
             }
         }
-        else Bridge._OPCDs_[ elmts[ 0 ] ]._cEVNT_?.Invoke( elmts[ 1 .. ] );
+        else if ( Bridge._OPCDs_[ cmd ]._cEVNT_ != null                                                     )
+        {
+            foreach ( Action < string[] > func in Bridge._OPCDs_[ cmd ]._cEVNT_! )
+            {
+                func.Invoke( elmts[ 1 .. ] );
+            }
+        }
     }
 
     /// <summary>
     /// 
     /// </summary>
     /// <returns></returns>
-    private async Task _COMM_ (                             ) 
+    private async Task _COMM_ (                                                ) 
     {
         this._SYNC_.Start();
 
@@ -265,10 +313,11 @@ internal sealed   class rtClient : rtEntity
     /// <param name = "pswd"></param>
     private void _DCVR_ ( string pswd ) 
     {
-        if (!this._SYNC_.Continue || this._DTGM_ == null || this._PSWDs_.Contains( pswd ) ) return;
+        if ( _DRNG_ || this._PSWDs_.Contains( pswd ) ) return;
 
-        this._SYNC_.Start(      );
-        this._PSWDs_.Add ( pswd );
+        _DRNG_ = true;
+
+        this._DTGM_ ??= new() { EnableBroadcast = true };
 
         byte[] bPsw = Encoding.UTF8.GetBytes( pswd );
 
@@ -276,19 +325,33 @@ internal sealed   class rtClient : rtEntity
         { 
             await this._DTGM_.SendAsync( bPsw, bPsw.Length, IPAddress.Broadcast.ToString(), Bridge._dPRT_ );
 
-            if ( this._DTGM_.Available == 0 ) return;
+            Task timeout = Task.Delay( 500 );
 
-            var rspc = await this._DTGM_.ReceiveAsync();
-
-            string[] elmts = Encoding.UTF8.GetString( rspc.Buffer ).Split( " : " );
-
-            if ( elmts.Length == 2 )
+            while ( !timeout.IsCompleted )
             {
-                Server serv = new ( elmts[ 0 ], int.Parse( elmts[ 1 ] ) );
+                if ( this._DTGM_.Available == 0 )
+                {
+                    await Task.Delay( 10 );
 
-                if ( !this._ETTYs_.Contains( serv ) ) this._ETTYs_.Add( serv );
+                    continue;
+                }
+                var rspc = await this._DTGM_.ReceiveAsync();
+
+                string[] elmts = Encoding.UTF8.GetString( rspc.Buffer ).Split( " : " );
+
+                if ( elmts.Length == 2 )
+                {
+                    Server serv = new ( elmts[ 0 ], int.Parse( elmts[ 1 ] ) );
+
+                    if ( !this._ETTYs_.Contains( serv ) )
+                    {
+                        this._ETTYs_.Add( serv );
+                        this._PSWDs_.Add( pswd );
+                    }
+                }
+                Bridge._ADD_?.Invoke( [ .. this._ETTYs_ ] );
             }
-            this._SYNC_.Stop();
+            _DRNG_ = false;
         });
     }
 
@@ -297,10 +360,9 @@ internal sealed   class rtClient : rtEntity
     /// </summary>
     private void _DCVR_ (             ) 
     {
-        this._SYNC_.Start()                           ;
-        this._DTGM_ = new() { EnableBroadcast = true };
+        this._SYNC_.Start();
 
-        byte[] pswd = Encoding.UTF8.GetBytes( Bridge._DFLT_ );
+        this._DTGM_ ??= new() { EnableBroadcast = true };
 
         Task.Run( async () =>
         {
@@ -308,32 +370,41 @@ internal sealed   class rtClient : rtEntity
             {
                 this._ETTYs_ = [];
 
-                await this._DTGM_.SendAsync( pswd, pswd.Length, IPAddress.Broadcast.ToString(), Bridge._dPRT_ );
+                List< string > pswds = [ .. this._PSWDs_ ];
 
-                var timer = Task.Delay( 500 );
+                pswds.Add( Bridge._DFLT_ );
 
-                while ( this._SYNC_.Continue && !timer.IsCompleted )
+                foreach ( string pswd in pswds )
                 {
-                    if ( this._DTGM_.Available == 0 )
+                    byte[] bpsw = Encoding.UTF8.GetBytes( pswd );
+
+                    await this._DTGM_.SendAsync( bpsw, bpsw.Length, IPAddress.Broadcast.ToString(), Bridge._dPRT_ );
+                
+                    var timer = Task.Delay( 500 );
+
+                    while ( this._SYNC_.Continue && !timer.IsCompleted )
                     {
-                        await Task.Delay( 10 );
+                        if ( this._DTGM_.Available == 0 )
+                        {
+                            await Task.Delay( 10 );
 
-                        continue;
+                            continue;
+                        }
+                        var rspc = await this._DTGM_.ReceiveAsync();
+
+                        string[] elmts = Encoding.UTF8.GetString( rspc.Buffer ).Split( " : " );
+
+                        if ( elmts.Length == 2 )
+                        {
+                            Server serv = new ( elmts[ 0 ], int.Parse( elmts[ 1 ] ) );
+
+                            if ( !this._ETTYs_.Contains( serv ) ) this._ETTYs_.Add( serv );
+                        }
                     }
-                    var rspc = await this._DTGM_.ReceiveAsync();
+                    Bridge._ADD_?.Invoke( [ .. this._ETTYs_ ] );
 
-                    string[] elmts = Encoding.UTF8.GetString( rspc.Buffer ).Split( " : " );
-
-                    if ( elmts.Length == 2 )
-                    {
-                        Server serv = new ( elmts[ 0 ], int.Parse( elmts[ 1 ] ) );
-
-                        if ( !this._ETTYs_.Contains( serv ) ) this._ETTYs_.Add( serv );
-                    }
+                    await Task.Delay( 500 );
                 }
-                Bridge._ADD_?.Invoke( [ .. this._ETTYs_ ] );
-
-                await Task.Delay( 500 );
             }
             this._SYNC_.Stop();
         });
@@ -349,16 +420,15 @@ internal sealed   class rtServer : rtEntity
 {
     #region PRIVATE  INSTANCE FIELDS
 
-    private TcpListener?    _CONN_ = null         ;
-    private int             _PORT_ = 7000         ;
-    private string          _PSWD_ = Bridge._DFLT_;
+    private Dictionary < string, ( List < string > _ELMTs_, int _wQUE_, int _rQUE_ ) > _fQUE_  = []          ;
 
-    private List < string > _eQUE_ = []           ;
-
-    private int             _sREQ_ = 0            ;
-    private int             _fREQ_ = 0            ;
+    private TcpListener?                                                               _CONN_ = null         ;
+    private int                                                                        _PORT_ = 7000         ;
+    private string                                                                     _PSWD_ = Bridge._DFLT_;
 
     #endregion
+
+    internal bool Active => this._CONN_ != null && this._DTGM_ != null;
 
     #region INTERNAL OVERRIDE FUNCTIONS
 
@@ -376,16 +446,31 @@ internal sealed   class rtServer : rtEntity
     /// <summary>
     /// 
     /// </summary>
+    internal void      _STRT_ ( int port, string password) 
+    {
+        if ( !this._SYNC_.Idle || this._CONN_ != null || this._DTGM_ != null ) return;
+
+        this._PORT_ = port;
+        this._PSWD_ = password;
+
+        this._DCVR_();
+        this._PROC_();
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
     internal override void      _STOP_ () 
     {
         if ( !this._SYNC_.Continue || this._CONN_ == null || this._DTGM_ == null ) return;
-
         this._SYNC_.Close ();
-        this._SYNC_.Yield ();
-
-        this._CONN_!.Stop ();
+        this._CONN_.Stop();
         this._DTGM_!.Close();
-
+        foreach ( Client clnt in _ETTYs_ )
+        {
+            clnt._STRM_.Close();
+        }
+        this._SYNC_.Yield ();
         this._CONN_ = null!;
         this._DTGM_ = null!;
     }
@@ -406,14 +491,29 @@ internal sealed   class rtServer : rtEntity
     /// 
     /// </summary>
     /// <param name = "cmd" ></param>
+    /// <param name = "strm"></param>
     /// <param name = "pyld"></param>
-    internal      void _SEND_ ( string    cmd , NetworkStream strm, string pyld  ) 
+    /// <param name = "id"  ></param>
+    internal      void _SEND_ ( string    cmd , NetworkStream strm , string pyld, string? id = null ) 
     {
-        if      ( cmd == Bridge.FIL && this._sREQ_ == 0 && int.TryParse( pyld, out int sReq ) ) this._sREQ_ = sReq;
-        else if ( cmd == Bridge.FIL && this._sREQ_ != 0                                       )
-        {
-            cmd         = Bridge.NXT;
-            this._sREQ_--           ;
+        if      ( 
+            cmd == Bridge.FIL                                         && 
+            id  != null                                               &&
+            ( !_fQUE_.ContainsKey( id ) || _fQUE_[ id ]._wQUE_ == 0 ) &&
+            int.TryParse( pyld, out int wQue ) 
+        ){
+            pyld         = $"{ id }{ Serializer.SPLITTER }{ pyld }";
+            _fQUE_[ id ] = ( [], wQue, 0 )                         ;
+        }
+        else if ( 
+            cmd                 == Bridge.FIL &&
+            id                  != null       &&
+            _fQUE_.ContainsKey( id )          &&
+            _fQUE_[ id ]._wQUE_ != 0
+        ){
+            cmd          = Bridge.NXT                                                            ;
+            pyld         = $"{ id }{ Serializer.SPLITTER }{ pyld }"                              ;
+            _fQUE_[ id ] = ( _fQUE_[ id ]._ELMTs_, _fQUE_[ id ]._wQUE_ - 1, _fQUE_[ id ]._rQUE_ );
         }
         byte[] rqst = Encoding.UTF8.GetBytes( $"{ cmd }{ Serializer.SPLITTER }{ pyld }{ Serializer.TERMINATOR }" );
 
@@ -423,15 +523,29 @@ internal sealed   class rtServer : rtEntity
     /// <summary>
     /// 
     /// </summary>
-    /// <param name = "cmd"></param>
+    /// <param name = "cmd" ></param>
     /// <param name = "pyld"></param>
-    internal      void _SEND_ ( string    cmd ,                     string pyld  ) 
+    /// <param name = "id"  ></param>
+    internal      void _SEND_ ( string    cmd ,                      string pyld, string? id = null ) 
     {
-        if      ( cmd == Bridge.FIL && this._sREQ_ == 0 && int.TryParse( pyld, out int sReq ) ) this._sREQ_ = sReq;
-        else if ( cmd == Bridge.FIL && this._sREQ_ != 0                                       )
-        {
-            cmd         = Bridge.NXT;
-            this._sREQ_--           ;
+        if      ( 
+            cmd == Bridge.FIL                                         &&
+            id  != null                                               &&
+            ( !_fQUE_.ContainsKey( id ) || _fQUE_[ id ]._wQUE_ == 0 ) &&
+            int.TryParse( pyld, out int wQue )
+        ){
+            pyld         = $"{ id }{ Serializer.SPLITTER }{ pyld }";
+            _fQUE_[ id ] = ( [], wQue, 0 )                         ;
+        }
+        else if ( 
+            cmd                 == Bridge.FIL && 
+            id                  != null       &&
+            _fQUE_.ContainsKey( id )          &&
+            _fQUE_[ id ]._wQUE_ != 0
+        ){
+            cmd          = Bridge.NXT                                                            ;
+            pyld         = $"{ id }{ Serializer.SPLITTER }{ pyld }"                              ;
+            _fQUE_[ id ] = ( _fQUE_[ id ]._ELMTs_, _fQUE_[ id ]._wQUE_ - 1, _fQUE_[ id ]._rQUE_ );
         }
         byte[] rqst = Encoding.UTF8.GetBytes( $"{ cmd }{ Serializer.SPLITTER }{ pyld }{ Serializer.TERMINATOR }" );
 
@@ -446,35 +560,51 @@ internal sealed   class rtServer : rtEntity
     /// <summary>
     /// 
     /// </summary>
-    /// <param name = "strm" ></param>
+    /// <param name = "clnt" ></param>
     /// <param name = "elmts"></param>
-    private       void _INVK_ ( Client    clnt, string[]      elmts              ) 
+    private       void _INVK_ ( Client    clnt, string[]      elmts                                 ) 
     {
-        foreach (string r in elmts) Console.WriteLine(r);
         if ( elmts.Length <= 1 || !Bridge._OPCDs_.ContainsKey( elmts[ 0 ] ) ) return;
 
-        if ( elmts[ 0 ] == Bridge.FIL && elmts.Length == 2 )
+        string cmd = elmts[ 0 ];
+
+        if      ( cmd == Bridge.FIL && ( !_fQUE_.ContainsKey( elmts[ 1 ] ) || _fQUE_[ elmts[ 1 ] ]._rQUE_ == 0 ) && elmts.Length == 3 )
         {
-            if ( !int.TryParse( elmts[ 1 ], out int num ) ) return;
+            if ( !int.TryParse( elmts[ 2 ], out int num ) ) return;
 
-            this._eQUE_.Clear();
+            string id = elmts[ 1 ];
 
-            this._fREQ_ = num;
+            _fQUE_[ id ] = ( _fQUE_.ContainsKey( id ) ? _fQUE_[ id ]._ELMTs_ : [], 0, num );
+
+            _fQUE_[ id ]._ELMTs_.Clear();
         }
-        else if ( elmts[ 0 ] == Bridge.NXT && this._fREQ_ > 0 )
+        else if ( cmd == Bridge.NXT && _fQUE_.ContainsKey( elmts[ 1 ] ) && _fQUE_[ elmts[ 1 ] ]._rQUE_ >  0 )
         {
-            for ( int idx = 1; idx < elmts.Length; idx++ ) this._eQUE_.Add( elmts[ idx ] );
+            string id = elmts[ 1 ];
 
-            this._fREQ_--;
+            for ( int idx = 2; idx < elmts.Length; idx++ ) _fQUE_[ id ]._ELMTs_.Add( elmts[ idx ] );
 
-            if ( this._fREQ_ == 0 )
+            _fQUE_[ id ] = ( _fQUE_[ id ]._ELMTs_, _fQUE_[ id ]._wQUE_, _fQUE_[ id ]._rQUE_ - 1 );
+
+            if ( _fQUE_[ id ]._rQUE_ == 0 )
             {
-                Bridge._OPCDs_[ elmts[ 0 ] ]._sEVNT_?.Invoke( clnt, [ .. this._eQUE_ ] );
-
-                this._eQUE_ = [];
+                if ( Bridge._OPCDs_[ elmts[ 0 ] ]._sEVNT_ != null )
+                {
+                    foreach ( Action < Client, string[] > func in Bridge._OPCDs_[ elmts[ 0 ] ]._sEVNT_! )
+                    {
+                        func.Invoke( clnt, [ .. _fQUE_[ id ]._ELMTs_ ] );
+                    }
+                }
+                _fQUE_[ id ]._ELMTs_.Clear();
             }
         }
-        else Bridge._OPCDs_[ elmts[ 0 ] ]._sEVNT_?.Invoke( clnt, elmts[ 1 .. ] );
+        else if ( Bridge._OPCDs_[ elmts[ 0 ] ]._sEVNT_ != null                                              )
+        {
+            foreach ( Action < Client, string[] > func in Bridge._OPCDs_[ elmts[ 0 ] ]._sEVNT_! )
+            {
+                func.Invoke( clnt, elmts[ 1 .. ] );
+            }
+        }
     }
 
     /// <summary>
@@ -482,7 +612,7 @@ internal sealed   class rtServer : rtEntity
     /// </summary>
     /// <param name = "cntn"></param>
     /// <returns></returns>
-    private async Task _COMM_ ( TcpClient cntn                                   ) 
+    private async Task _COMM_ ( TcpClient cntn                                                      ) 
     {
         this._SYNC_.Start();
 
@@ -492,26 +622,36 @@ internal sealed   class rtServer : rtEntity
         this._ETTYs_.Add    ( clnt                );
         Bridge._ADD_?.Invoke( [ .. this._ETTYs_ ] );
         
-        while ( this._SYNC_.Continue )
+        try
         {
-            int bytes = await clnt._STRM_.ReadAsync( clnt.bffr, 0, clnt.bffr.Length );
-
-            if ( bytes == 0 ) break;
-            rqst += Encoding.UTF8.GetString( clnt.bffr, 0, bytes );
-
-            int rend = default;
-
-            while ( ( rend = rqst.IndexOf( Serializer.TERMINATOR ) ) != -1 )
+            while ( this._SYNC_.Continue )
             {
-                this._INVK_( clnt, rqst[ .. rend ].Trim().Split( Serializer.SPLITTER ) );
+                int bytes = await clnt._STRM_.ReadAsync( clnt.bffr, 0, clnt.bffr.Length );
 
-                rqst = rqst[ ( rend + Serializer.TERMINATOR.Length ) .. ];
+                if ( bytes == 0 ) break;
+                rqst += Encoding.UTF8.GetString( clnt.bffr, 0, bytes );
+
+                int rend = default;
+
+                while ( ( rend = rqst.IndexOf( Serializer.TERMINATOR ) ) != -1 )
+                {
+                    this._INVK_( clnt, rqst[ .. rend ].Trim().Split( Serializer.SPLITTER ) );
+
+                    rqst = rqst[ ( rend + Serializer.TERMINATOR.Length ) .. ];
+                }
             }
         }
-        clnt._ACTV_ = false;
+        catch (ObjectDisposedException)
+        {
+        }
+        finally
+        {
+            clnt._ACTV_ = false;
 
-        cntn.Close      ();
-        this._SYNC_.Stop();
+            cntn.Close();
+            this._SYNC_.Stop();
+            Console.WriteLine("COMM");
+        }
     }
 
     #endregion
@@ -543,6 +683,7 @@ internal sealed   class rtServer : rtEntity
                 }
             }
             this._SYNC_.Stop();
+            Console.WriteLine("DISC");
         });
     }
 
@@ -556,13 +697,26 @@ internal sealed   class rtServer : rtEntity
         this._CONN_.Start();
 
         Task.Run( async () => {
-            while ( this._SYNC_.Continue )
+            try
             {
-                TcpClient clnt = await this._CONN_.AcceptTcpClientAsync();
-
-                _  = this._COMM_( clnt );
+                while (this._SYNC_.Continue)
+                {
+                    TcpClient clnt = await this._CONN_.AcceptTcpClientAsync();
+                    
+                    _ = this._COMM_(clnt);
+                }
             }
-            this._SYNC_.Stop();
+            catch (ObjectDisposedException)
+            {
+            }
+            catch (InvalidOperationException)
+            {
+            }
+            finally
+            {
+                this._SYNC_.Stop();
+                Console.WriteLine("PROC");
+            }
         });
     }
 

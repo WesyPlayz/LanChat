@@ -1,15 +1,18 @@
 ﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED   : 3/11/2026 08:07
+/// UPDATED   : 3/13/2026 14:35
 /// 
 /// REMAINING :
+///     Renderer.Refresh        ()
+///     Renderer.Render_Upward  ()
+///     Renderer.Render_Downward()
+///     
 ///     Storage CLASS
 
 #region GENERAL HEADER
 
 using System.Windows;
 using System.Windows.Controls;
-using System.Net.Sockets;
 
 #endregion
 #region LANCHAT HEADER
@@ -17,6 +20,7 @@ using System.Net.Sockets;
 using LanChat.SubSystem.Scheduling;
 using LanChat.SubSystem.Network;
 using LanChat.SubSystem.Serialization;
+using Microsoft.VisualBasic;
 
 #endregion
 
@@ -31,8 +35,9 @@ public static class Messager
 {
     #region PUBLIC   STATIC FIELDS
 
-    public static string TIME  = "TIME" ;
-    public static string COUNT = "COUNT";
+    public const string TIME  = "TIME" ;
+    public const string COUNT = "COUNT";
+    public const string ALL   = "ALL"  ;
 
     #endregion
     #region PRIVATE  STATIC FIELDS
@@ -41,6 +46,7 @@ public static class Messager
 
     private static Action < int    , Batch?  > _bEVT_ = null!          ; // Batch Event
     private static Action < int    , Message > _mEVT_ = null!          ; // Message Event
+    private static Action < Message[]        > _aEVT_ = null!          ; // Message Event
     private static Action < DateTime         > _tEVT_ = null!          ; // Time Event
     private static Action < int              > _cEVT_ = null!          ; // Count Event
 
@@ -123,6 +129,7 @@ public static class Messager
     {
         if      ( rqst == TIME  ) Bridge.Request( TIME  );
         else if ( rqst == COUNT ) Bridge.Request( COUNT );
+        else if ( rqst == ALL   ) Bridge.Request( ALL   );
     }
 
     #endregion
@@ -139,6 +146,12 @@ public static class Messager
     /// </summary>
     /// <param name = "func"></param>
     public static void Bind ( Action < int     , Message > func ) => _mEVT_ = func;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "func"></param>
+    public static void Bind ( Action< Message[]          > func ) => _aEVT_ = func;
 
     /// <summary>
     /// 
@@ -179,9 +192,23 @@ public static class Messager
     /// <param name = "elmts"></param>
     private static void _NEXT_CLIENT_ (              string[] elmts ) 
     {
-        if ( !int.TryParse( elmts[ 1 ], out int bIdx ) ) return;
+        if ( elmts.Length == 1 && elmts[ 0 ] == "NULL" ) return;
+        
+        if ( !int.TryParse( elmts[ 1 ], out int bIdx ) && elmts[ 0 ] == ALL && elmts.Length >= 2 )
+        {
+            List < Message > msgs = [];
 
-        if      ( elmts[ 0 ] == "BATCH"   )
+            for ( int idx = 1; idx < elmts.Length; idx += 3 )
+            {
+                if ( !DateTime.TryParse( elmts[ idx + 1 ], out DateTime time ) ) return;
+
+                msgs.Add( new( elmts[ idx ], time, elmts[ idx + 2 ] ) );
+            }
+            _aEVT_?.Invoke( [ .. msgs ] );
+
+            return;
+        }
+        else if      ( elmts[ 0 ] == "BATCH"   )
         {
             if ( elmts.Length == 2 )
             {
@@ -221,10 +248,10 @@ public static class Messager
 
             Batch.Include( msg );
 
-            Bridge.Fill_All( $"{ 3 }"                       );
-            Bridge.Fill_All( "MESSAGE"                      );
-            Bridge.Fill_All( ( Batch.Count - 1 ).ToString() );
-            Bridge.Fill_All( msg.ToString()                 );
+            Bridge.Fill_All( $"{ 3 }"                      , _NAME_, "MSENDSERVER" );
+            Bridge.Fill_All( "MESSAGE"                     , _NAME_, "MSENDSERVER" );
+            Bridge.Fill_All( ( Batch.Count - 1 ).ToString(), _NAME_, "MSENDSERVER" );
+            Bridge.Fill_All( msg.ToString()                , _NAME_, "MSENDSERVER" );
         }
         else if ( elmts.Length == 1 )
         {
@@ -234,21 +261,21 @@ public static class Messager
 
             if ( btch == null )
             {
-                Bridge.Fill( clnt, $"{ 2 }"       );
-                Bridge.Fill( clnt, "BATCH"        );
-                Bridge.Fill( clnt, idx.ToString() );
+                Bridge.Fill( clnt, $"{ 2 }"      , _NAME_, "MSENDSERVER" );
+                Bridge.Fill( clnt, "BATCH"       , _NAME_, "MSENDSERVER" );
+                Bridge.Fill( clnt, idx.ToString(), _NAME_, "MSENDSERVER" );
 
                 return;
             }
-            Bridge.Fill( clnt, $"{ btch.Size + 2 }" );
-            Bridge.Fill( clnt, "BATCH"              );
-            Bridge.Fill( clnt, idx.ToString()       );
+            Bridge.Fill( clnt, $"{ btch.Size + 2 }", _NAME_, "MSENDSERVER");
+            Bridge.Fill( clnt, "BATCH"             , _NAME_, "MSENDSERVER");
+            Bridge.Fill( clnt, idx.ToString()      , _NAME_, "MSENDSERVER");
 
             Message? cur = btch.First;
 
             while ( cur != null )
             {
-                Bridge.Fill( clnt, cur.ToString() );
+                Bridge.Fill( clnt, cur.ToString(), _NAME_, "MSENDSERVER");
 
                 cur = cur._NEXT_;
             }
@@ -266,9 +293,41 @@ public static class Messager
 
         switch ( elmts[ 0 ] )
         {
-            case    "TIME"  : Bridge.Send( clnt, DateTime.Now.ToString() ); break ;
-            case    "COUNT" : Bridge.Send( clnt, Batch.Count.ToString()  ); break ;
-            default         :                                               return;
+            case    TIME  : Bridge.Send( clnt, DateTime.Now.ToString() ); break ;
+            case    COUNT : Bridge.Send( clnt, Batch.Count.ToString () ); break ;
+
+            case    ALL   :
+                if ( Batch.Count <= 0 )
+                {
+                    Bridge.Fill( clnt, "1"   , _NAME_, "MRQSTSERVER" );
+                    Bridge.Fill( clnt, "NULL", _NAME_, "MRQSTSERVER" );
+
+                    break;
+                }
+                int              ttal = 0 ;
+                List < Message > msgs = [];
+
+                for ( int idx = 0; idx < Batch.Count; idx++ )
+                {
+                    Batch     btch = Batch.Get( idx );
+                    Message?  cur  = btch.First      ;
+
+                    ttal += Batch.Get( idx ).Size;
+
+                    while ( cur != null )
+                    {
+                        msgs.Add( cur );
+
+                        cur = cur._NEXT_;
+                    }
+                }
+                Bridge.Fill( clnt, ( ttal + 1 ).ToString(), _NAME_, "MRQSTSERVER" );
+                Bridge.Fill( clnt, "ALL"                  , _NAME_, "MRQSTSERVER" );
+
+                foreach ( Message msg in msgs ) Bridge.Fill( clnt, msg.ToString(), _NAME_, "MRQSTSERVER" );
+            break;
+
+            default : return;
         }
     }
 
@@ -320,9 +379,10 @@ public static class Renderer
 
         Messager.Bind( _bLOD_ );
         Messager.Bind( _mLOD_ );
+        Messager.Bind( _aLOD_ );
         Messager.Bind( _cSET_ );
 
-        _ = Task.Run( Refresh );
+        //_ = Task.Run( Refresh );
     }
 
     #endregion
@@ -353,6 +413,19 @@ public static class Renderer
     /// <param name = "msg"></param>
     private static void _mLOD_ ( int idx, Message msg  ) 
     {
+        Application.Current.Dispatcher.Invoke( () =>
+        {
+            FrameworkElement elmt = ( FrameworkElement )_mTMP_.LoadContent();
+
+            elmt.DataContext = msg;
+
+            _MSGs_.Children.Add( elmt );
+            _SCRL_.UpdateLayout(      );
+
+            if ( msg.Sender == Messager._NAME_ ) _SCRL_.ScrollToEnd();
+        });
+
+        /*
         if ( idx == _lIDX_ )
         {
             Application.Current.Dispatcher.Invoke( () =>
@@ -375,6 +448,24 @@ public static class Renderer
         }
         if (_lBTC_ != null) _lBTC_!._INCD_( msg );
         else                _lBTC_ = new  ( msg );
+        */
+    }
+
+    private static void _aLOD_ ( Message[] msgs        ) 
+    {
+        Application.Current.Dispatcher.Invoke( () =>
+        {
+            foreach ( Message msg in msgs )
+            {
+                FrameworkElement elmt = ( FrameworkElement )_mTMP_.LoadContent();
+
+                elmt.DataContext = msg;
+
+                _MSGs_.Children.Add( elmt );
+                _SCRL_.UpdateLayout(      );
+            }
+            _SCRL_.ScrollToEnd();
+        });
     }
 
     /// <summary>
@@ -415,6 +506,7 @@ public static class Renderer
     #endregion
     #region PUBLIC   STATIC   FUNCTIONS
 
+    /*
     /// <summary>
     /// 
     /// </summary>
@@ -568,6 +660,7 @@ public static class Renderer
         }
         _SCRL_.ScrollToVerticalOffset( _SCRL_.VerticalOffset - height );
     }
+    */
 
     #endregion
 }
@@ -714,12 +807,13 @@ public sealed class Batch
     /// <param name = "mPnl"></param>
     /// <param name = "msgs"></param>
     /// <param name = "tMsg"></param>
-    public static void Initialize ( int bSiz ) {
+    public static void Initialize ( int bSiz ) 
+    {
         if ( _BATCHES_.Count > 0 && bSiz > _sBND_ ) return;
 
         _bSIZ_ = bSiz;
 
-        Include( new ( "Welcome Ryan!" ) );
+        Include( new ( "Welcome Users!" ) );
     }
 
     #endregion

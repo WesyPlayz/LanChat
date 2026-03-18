@@ -17,6 +17,8 @@
     <SolidColorBrush x:Key = "Primary6"    Color = "#1f1f1f"></SolidColorBrush>
     
     <SolidColorBrush x:Key = "Secondary0"  Color = "#04bff0"></SolidColorBrush>
+    <SolidColorBrush x:Key = "Secondary1"  Color = "#5bb450"></SolidColorBrush>
+    <SolidColorBrush x:Key = "Secondary2"  Color = "#dd0000"></SolidColorBrush>
     
     <SolidColorBrush x:Key = "Ternary0"    Color = "#161616"></SolidColorBrush>
     <SolidColorBrush x:Key = "Ternary1"    Color = "#000000"></SolidColorBrush>
@@ -698,15 +700,130 @@
         </Border>
     </DataTemplate>
 
+    <DataTemplate x:Key = "Login_Panel">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height = "auto"/>
+                <RowDefinition Height = "auto"/>
+                <RowDefinition Height = "auto"/>
+                <RowDefinition Height = "*"   />
+            </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width = "auto"/>
+                <ColumnDefinition Width = "*"   />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock
+                Text              = "Username : "
+        
+                Foreground        = "White"
+        
+                VerticalAlignment = "Center"
+        
+                Margin            = "10 0"
+            >
+            </TextBlock>
+
+            <TextBlock
+                Text              = "Password : "
+        
+                Grid.Row          = "1"
+    
+                Foreground        = "White"
+    
+                VerticalAlignment = "Center"
+    
+                Margin            = "10 0"
+            >
+            </TextBlock>
+
+            <TextBox
+                x:Name      = "Username"
+        
+                Grid.Row    = "0"
+                Grid.Column = "1"
+        
+                Height      = "25"
+        
+                Margin      = "0 10"
+            >
+            </TextBox>
+
+            <TextBox
+                x:Name      = "Password"
+        
+                Grid.Row    = "1"
+                Grid.Column = "1"
+        
+                Height      = "25"
+        
+                Margin      = "0 10"
+            >
+            </TextBox>
+
+            <Button
+                x:Name          = "Join"
+        
+                Content         = "Join"
+        
+                Grid.Row        = "2"
+                Grid.Column     = "1"
+        
+                Height          = "25"
+        
+                Margin          = "0 25"
+            >
+
+            </Button>
+        </Grid>
+    </DataTemplate>
+
     <!-- ELEMENT TEMPLATES -->
 
     <DataTemplate  x:Key = "Client">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width = "*"   />
+                <ColumnDefinition Width = "auto"/>
+            </Grid.ColumnDefinitions>
 
+            <TextBlock
+        Text="{ Binding Username }"
+    
+        Grid.Column = "0"
+        
+        FontSize="20"
+    
+        Foreground = "{ StaticResource Primary0 }"
+    
+        VerticalAlignment = "Center"
+    />
+
+            <Border
+        x:Name="Status"
+        Grid.Column = "1"
+        
+        CornerRadius="10"
+        
+        Background = "Green"
+    >
+                <TextBlock
+            x:Name="Label"
+            Text="Active"
+            
+            Foreground="{ StaticResource Primary0 }"
+            
+            Padding="25 5"
+        />
+            </Border>
+        </Grid>
     </DataTemplate>
 
     <DataTemplate  x:Key = "Server">
         <Button
             Background                 = "Transparent"
+            BorderBrush                = "{ StaticResource Primary0 }"
                     
             HorizontalContentAlignment = "Left"
                     
@@ -724,6 +841,7 @@
                 </Grid.ColumnDefinitions>
 
                 <TextBlock
+                    x:Name                         = "Name"
                     Grid.Column                    = "0"
                     
                     Text                           = "{ Binding Name }"
@@ -750,6 +868,7 @@
                 >
                 </TextBlock>
                 <TextBlock
+                    x:Name                         = "Ip"
                     Grid.Column                    = "2"
     
                     Text                           = "{ Binding Ip }"
@@ -776,6 +895,7 @@
                 >
                 </TextBlock>
                 <TextBlock
+                    x:Name                         = "Port"
                     Grid.Column                    = "4"
     
                     Text                           = "{ Binding Port }"

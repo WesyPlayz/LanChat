@@ -1,11 +1,10 @@
 ﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED   : 3/03/2026 12:30
+/// UPDATED   : 3/13/2026 14:35
 ///
 /// REMAINING :
 ///     Client   CLASS
 ///     Server   CLASS
-///     Renderer CLASS
 
 #region GENERAL HEADER
 
@@ -18,6 +17,8 @@ using System.Windows.Controls;
 #region LANCHAT HEADER
 
 using LanChat.SubSystem.Network.Runtime;
+using LanChat.SubSystem.Serialization;
+using LanChat.SubSystem.UserInterface;
 
 #endregion
 
@@ -65,7 +66,7 @@ public static class     Bridge
 
     internal readonly static Dictionary < 
         string, 
-        ( Action < string[] >? _cEVNT_, Action < Client, string[] >? _sEVNT_ ) 
+        ( List < Action < string[] > >? _cEVNT_, List < Action < Client, string[] > >? _sEVNT_ ) 
     > _OPCDs_ = new ()
     {
         { SND, ( null, null ) },
@@ -86,7 +87,33 @@ public static class     Bridge
     /// <summary>
     /// 
     /// </summary>
-    public static bool Active => _RNTM_ != null;
+    public static bool Active
+    {
+        get
+        {
+            if ( _RNTM_ is rtServer serv ) return serv.Active;
+            
+            return _RNTM_ != null;
+        }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public static int  Count     => _RNTM_ != null ? _RNTM_._CNT_ : -1;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public static bool Connected 
+    {
+        get
+        {
+            if ( _RNTM_ is rtClient clnt ) return clnt._ISCN_;
+
+            return false;
+        }
+    }
 
     #endregion
 
@@ -117,7 +144,18 @@ public static class     Bridge
     /// <summary>
     /// 
     /// </summary>
-    public static void Stop  () => _RNTM_?._STOP_();
+    public static void Start ( int port, string password )
+    {
+        if ( _RNTM_ is rtServer serv ) serv._STRT_( port, password);
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public static void Stop  ()
+    {
+        _RNTM_?._STOP_();
+    }
 
     #endregion
     #region PUBLIC   STATIC MODIFIERS
@@ -131,7 +169,12 @@ public static class     Bridge
     {
         if ( !_OPCDs_.ContainsKey( opcd ) ) return;
 
-        if ( _RNTM_ is rtClient ) _OPCDs_[ opcd ] = ( func, null );
+        if ( _RNTM_ is rtClient )
+        {
+            if ( _OPCDs_[ opcd ]._cEVNT_ == null ) _OPCDs_[ opcd ] = ( [], _OPCDs_[ opcd ]._sEVNT_ );
+
+            _OPCDs_[ opcd ]._cEVNT_!.Add( func );
+        }
     }
 
     /// <summary>
@@ -143,7 +186,12 @@ public static class     Bridge
     {
         if ( !_OPCDs_.ContainsKey( opcd ) ) return;
 
-        if ( _RNTM_ is rtServer ) _OPCDs_[ opcd ] = ( null, func );
+        if ( _RNTM_ is rtServer )
+        {
+            if ( _OPCDs_[ opcd ]._sEVNT_ == null ) _OPCDs_[ opcd ] = ( _OPCDs_[ opcd ]._cEVNT_, [] );
+
+            _OPCDs_[ opcd ]._sEVNT_!.Add( func );
+        }
     }
 
     /// <summary>
@@ -159,19 +207,13 @@ public static class     Bridge
     /// 
     /// </summary>
     /// <param name = "opcd"></param>
-    public static void Unbind ( string opcd )
+    public static void Unbind ( string opcd                                   ) 
     {
-        if ( !_OPCDs_.ContainsKey( opcd ) ) return;
-
+        if ( !_OPCDs_.ContainsKey( opcd ) )
+        {
+            if      ( opcd == "ADD" ) _ADD_ = null;
+        }
         _OPCDs_[ opcd ] = ( null, null );
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public static void Unbind (             )
-    {
-        _ADD_ = null;
     }
 
     #endregion
@@ -209,9 +251,9 @@ public static class     Bridge
     /// 
     /// </summary>
     /// <param name = "pyld"></param>
-    public static void Fill        (              string pyld ) 
+    public static void Fill        ( string pyld, string name, string src ) 
     {
-        if ( _RNTM_ is rtClient clnt ) clnt._SEND_( FIL, pyld );
+        if ( _RNTM_ is rtClient clnt ) clnt._SEND_( FIL, pyld, name + src );
     }
 
     /// <summary>
@@ -219,18 +261,18 @@ public static class     Bridge
     /// </summary>
     /// <param name = "clnt"></param>
     /// <param name = "pyld"></param>
-    public static void Fill        ( Client clnt, string pyld ) 
+    public static void Fill        ( Client clnt, string pyld, string name, string src ) 
     {
-        if ( _RNTM_ is rtServer serv ) serv._SEND_( FIL, clnt._STRM_, pyld );
+        if ( _RNTM_ is rtServer serv ) serv._SEND_( FIL, clnt._STRM_, pyld, name + src );
     }
 
     /// <summary>
     /// 
     /// </summary>
     /// <param name = "pyld"></param>
-    public static void Fill_All    (              string pyld ) 
+    public static void Fill_All    ( string pyld, string name, string src ) 
     {
-        if ( _RNTM_ is rtServer serv ) serv._SEND_( FIL, pyld );
+        if ( _RNTM_ is rtServer serv ) serv._SEND_( FIL, pyld, name + src );
     }
 
     /// <summary>
@@ -269,7 +311,7 @@ public static class     Bridge
     /// 
     /// </summary>
     /// <param name = "pswd"></param>
-    public static void Search   ( string pswd ) 
+    public static void Discover   ( string  pswd ) 
     {
         if ( _RNTM_ is rtClient clnt ) clnt._STRT_( pswd );
     }
@@ -279,11 +321,19 @@ public static class     Bridge
     /// </summary>
     /// <param name = "idx"></param>
     /// <returns></returns>
-    public static bool Connect ( int     idx  ) 
+    public static bool Connect    ( int     idx  ) 
     {
         if ( _RNTM_ is rtClient clnt ) return clnt._CNCT_( idx ).GetAwaiter().GetResult();
 
         return false;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public static void Disconnect (              )
+    {
+        if ( _RNTM_ is rtClient clnt ) clnt._DSCN_();
     }
 
     #endregion
@@ -296,11 +346,42 @@ public static class     Renderer
 {
     #region PRIVATE STATIC FIELDS
 
-    private static ScrollViewer _SCRL_  = null!;
-    private static StackPanel   _ELMTs_ = null!;
-    private static DataTemplate _ELMT_  = null!;
+    private static ScrollViewer       _SCRL_  = null!;
+    private static StackPanel         _ELMTs_ = null!;
+    private static DataTemplate       _ELMT_  = null!;
 
-    private static iEntity[]    _ENTs_  = []   ;
+    private static iEntity[]          _ENTs_  = []   ;
+
+    private static RoutedEventHandler _CNCT_  = null!;
+
+    private static int                _SLCT_ = -1;
+    private static string             _DTLS_ =     "";
+
+    #endregion
+
+    #region PUBLIC  STATIC COMPUTED
+
+    public static int Selected
+    {
+        get
+        {
+            if ( _SLCT_ >= 0 && _SLCT_ <= _ENTs_.Length )
+            {
+                bool exis = false;
+
+                for ( int idx = 0; idx < _ENTs_.Length; idx++ )
+                {
+                    bool mtch = _ENTs_[ idx ].ToString() == _DTLS_;
+
+                    exis = !exis ? mtch : exis;
+                    
+                    if ( mtch ) _SLCT_ = idx;
+                }
+                return _SLCT_;
+            }
+            return -1;
+        }
+    }
 
     #endregion
 
@@ -317,6 +398,41 @@ public static class     Renderer
         _SCRL_  = scrl ;
         _ELMTs_ = elmts;
         _ELMT_  = elmt ;
+    }
+
+    #endregion
+    #region PUBLIC  STATIC MODIFIERS
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "func"></param>
+    public static void Bind   ( RoutedEventHandler func ) => _CNCT_ = func ;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public static void Unbind (                         ) => _CNCT_ = null!;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "idx" ></param>
+    /// <param name = "bttn"></param>
+    public static void Select ( int idx, Button bttn ) 
+    {
+        TextBlock? ip   = ( TextBlock? )bttn.FindName( "Ip"   );
+        TextBlock? port = ( TextBlock? )bttn.FindName( "Port" );
+
+        if (  ip != null && port != null )
+        {
+            foreach ( FrameworkElement elmt in _ELMTs_.Children )
+            {
+                if ( elmt is Button obtn ) obtn.BorderBrush = Prefabs.Get_Brush( "Primary0" );
+            }
+            _SLCT_ = idx                           ;
+            _DTLS_ = $"{ ip.Text } : { port.Text }";
+        }
     }
 
     #endregion
@@ -344,7 +460,7 @@ public static class     Renderer
     /// <summary>
     /// 
     /// </summary>
-    public static void Stop  () => Bridge.Unbind(       );
+    public static void Stop  () => Bridge.Unbind( "ADD" );
 
     #endregion
     #region PRIVATE STATIC FUNCTIONS
@@ -354,24 +470,27 @@ public static class     Renderer
     /// </summary>
     private static void _DSPY_ () 
     {
-        if ( _SCRL_ == null || _ELMTs_ == null || _ELMT_ == null ) return;
+        if ( _SCRL_ == null || _ELMTs_ == null || _ELMT_ == null || _ENTs_ == null ) return;
 
-        _ELMTs_.Children.Clear();
-
-        if ( _ENTs_ != null )
+        Application.Current.Dispatcher.Invoke( () =>
         {
-            foreach ( iEntity ent in _ENTs_ )
+            _ELMTs_.Children.Clear();
+
+            for ( int idx = 0; idx < _ENTs_.Length; idx++ )
             {
-                Console.WriteLine( ent.ToString() );
+                Button elmt = ( Button )_ELMT_.LoadContent();
 
-                FrameworkElement elmt = ( FrameworkElement )_ELMT_.LoadContent();
+                elmt.DataContext  = _ENTs_[ idx ] ;
+                elmt.Tag          = idx           ;
 
-                elmt.DataContext = ent;
+                if ( _ENTs_[ idx ].ToString() == _DTLS_ ) elmt.BorderBrush = Prefabs.Get_Brush( "Secondary0" );
+
+                if ( _CNCT_ != null ) elmt.Click += _CNCT_;
 
                 _ELMTs_.Children.Add( elmt );
                 _SCRL_.UpdateLayout (      );
             }
-        }
+        });
     }
 
     #endregion

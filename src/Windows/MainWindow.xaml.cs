@@ -1,24 +1,27 @@
 ﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED   : 2/22/2026 23:52
+/// UPDATED   : 3/13/2026 11:00
 /// 
-/// REMAINING :
-///     Discover()
-///     Connect ()
-///     Login   ()
+/// REMAINING : FINISHED ( SUBJECT TO UPDATE )
 
 #region GENERAL HEADER
 
 using System.Windows;
+
+using System.Windows.Input;
+
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Windows.Input;
+
 using System.Windows.Media;
 using System.Windows.Media.Effects;
 
 #endregion
 #region LANCHAT HEADER
 
+using LanChat.SubSystem.Network;
+using LanChat.SubSystem.Authentication;
+using LanChat.SubSystem.Messaging;
 using LanChat.SubSystem.Input;
 using LanChat.SubSystem.UserInterface;
 
@@ -59,11 +62,12 @@ public partial class MainWindow : Window
         SolidColorBrush? bkgd = Prefabs.Get_Brush            ( "Primary6"        );
 
         DataTemplate?    sTmp = Prefabs.Get_Template         ( "Server"          );
+        DataTemplate?    uTmp = Prefabs.Get_Template         ( "Client"          );
         DataTemplate?    mTmp = Prefabs.Get_Template         ( "Message"         );
         DataTemplate?    lTmp = ( DataTemplate? )FindResource( "Login_Page"      );
         DataTemplate?    cTmp = ( DataTemplate? )FindResource( "Chat_Page"       );
 
-        if ( sTmp == null || mTmp == null || lTmp == null || cTmp == null ) app._EXIT_( App.Integration.FUL, this );
+        if ( sTmp == null || uTmp == null || mTmp == null || lTmp == null || cTmp == null ) app._EXIT_( App.Integration.FUL, this );
 
         this._APP_                   = app  ;
         this.Style                   = styl!;
@@ -73,12 +77,13 @@ public partial class MainWindow : Window
         this._cTMP_                  = cTmp!;
 
         Login_Page.Server = sTmp!;
+        Chat_Page.Client  = uTmp!;
         Chat_Page.Message = mTmp!;
 
         this._lINIT_(      );
     }
 
-    #region PRIVATE  INSTANCE INITIALIZERS
+    #region PRIVATE INSTANCE INITIALIZERS
 
     /// <summary>
     /// 
@@ -138,6 +143,22 @@ public partial class MainWindow : Window
             lipl.Padding = new                                   ( 0            , 0, 5, 5 );
             lipl.Effect  = Prefabs.Get_Effect< DropShadowEffect >( "Shadow_Left"          );
 
+            StackPanel? pnsc = ( StackPanel? )lipl.FindName( "Panel_Space" );
+
+            if ( pnsc != null )
+            {
+                Button cnct = new Button
+                {
+                    Name    = "Connect",
+                    Content = "Connect",
+                    Margin  = new Thickness( 5 )
+                };
+                cnct.Click += Connect;
+
+                pnsc.Children.Add( cnct );
+
+                flip.Login_Panel = pnsc;
+            }
             lipg.Children.Add( lipl );
         }
         if ( svwd != null )
@@ -160,6 +181,7 @@ public partial class MainWindow : Window
                 {
                     flip.Servers = srvs;
 
+                    SubSystem.Network.Renderer.Bind      ( Select                        );
                     SubSystem.Network.Renderer.Initialize( scrl, srvs, Login_Page.Server );
                 }
             }
@@ -195,7 +217,7 @@ public partial class MainWindow : Window
     /// <summary>
     /// 
     /// </summary>
-    internal void _cINIT_ () 
+    private void _cINIT_ () 
     {
         this.Screen_Space.Child = null;
         
@@ -257,6 +279,8 @@ public partial class MainWindow : Window
             if ( actv != null ) fctp.Active_Clients   = actv;
             if ( inac != null ) fctp.Inactive_Clients = inac;
 
+            if ( actv != null && inac != null ) SubSystem.Authentication.Renderer.Initialize( blpl, actv, inac, Chat_Page.Client );
+
             ctpg.Children.Add( blpl );
         }
         if ( mgwd != null )
@@ -297,7 +321,7 @@ public partial class MainWindow : Window
             }
             ctpg.Children.Add( mgwd );
 
-            SubSystem.Messaging.Renderer.Initialize( scrl, msgs, Chat_Page.Message, 20 );
+            if ( scrl != null && msgs != null ) SubSystem.Messaging.Renderer.Initialize( scrl, msgs, Chat_Page.Message, 20 );
         }
         this.Screen_Space.Child = ctpg;
         this._PAGE_             = fctp;
@@ -305,17 +329,18 @@ public partial class MainWindow : Window
             ( Key.Enter, [ this.Send ] ),
             ( Key.Tab  , [ this.Tab  ] )
         ]);
+        SubSystem.Authentication.Renderer.Start();
+        Registry.Start();
     }
-    // ^ TEMP INTERNAL
 
     #endregion
-    #region PRIVATE  INSTANCE TRANSFORMERS
+    #region PRIVATE INSTANCE TRANSFORMERS
 
     /// <summary>
     /// 
     /// </summary>
     /// <param name = "input"></param>
-    private void Drag     ( object _, MouseButtonEventArgs input ) 
+    private void Drag       ( object _, MouseButtonEventArgs input ) 
     { 
         if ( input.ButtonState == MouseButtonState.Pressed ) DragMove(); 
     }
@@ -324,7 +349,7 @@ public partial class MainWindow : Window
     /// 
     /// </summary>
     /// <param name = "input"></param>
-    private void Dampener ( object _, MouseWheelEventArgs  input ) 
+    private void Dampener   ( object _, MouseWheelEventArgs  input ) 
     {
         //this._CTPG_._mPNL_.ScrollToVerticalOffset( this._CTPG_._mPNL_.VerticalOffset - input.Delta * 0.25 );
 
@@ -334,28 +359,37 @@ public partial class MainWindow : Window
     /// <summary>
     /// 
     /// </summary>
-    private void Minimize   ( object _, RoutedEventArgs __ ) => this.WindowState = WindowState.Minimized;
+    private void Minimize   ( object _, RoutedEventArgs      __    ) 
+    {
+        this.WindowState = WindowState.Minimized;
+    }
     
     /// <summary>
     /// 
     /// </summary>
-    private void Fullscreen ( object _, RoutedEventArgs __ ) => this.WindowState = (
-        this.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized
-    );
+    private void Fullscreen ( object _, RoutedEventArgs      __    ) 
+    {
+        this.WindowState = this.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+    }
     
     /// <summary>
     /// 
     /// </summary>
-    private void Exit       ( object _, RoutedEventArgs __ ) => this._APP_._EXIT_( App.Integration.PTL, this );
+    private void Exit       ( object _, RoutedEventArgs      __    ) 
+    {
+        if (this._PAGE_ is Chat_Page ctpg ) Registry.Leave();
+
+        this._APP_._EXIT_( App.Integration.FUL, this );
+    }
 
     #endregion
-    #region PRIVATE  INSTANCE EVENTS
+    #region PRIVATE INSTANCE EVENTS
 
     /// <summary>
     /// 
     /// </summary>
     /// <param name = "inpt"></param>
-    private void Invoke   ( object _, KeyEventArgs           inpt ) 
+    private void Invoke     ( object _   , KeyEventArgs           inpt ) 
     {
         if ( this._LSNR_ == null ) return;
 
@@ -367,7 +401,7 @@ public partial class MainWindow : Window
     /// <summary>
     /// 
     /// </summary>
-    private void Tab      (                                       ) 
+    private void Tab        (                                          ) 
     {
         if ( this._PAGE_ is Chat_Page ctpg )
         {
@@ -381,22 +415,26 @@ public partial class MainWindow : Window
     /// <summary>
     /// 
     /// </summary>
-    private void Discover (                                       ) 
+    private void Discover   (                                          ) 
     {
-        // TODO;
+        if ( this._PAGE_ is Login_Page lipg && !string.IsNullOrWhiteSpace( lipg.Input.Text ) )
+        {
+            Bridge.Discover ( lipg.Input.Text );
+            lipg.Input.Clear(                 );
+        }
     }
 
     /// <summary>
     /// 
     /// </summary>
-    private void Send     (                                       ) 
+    private void Send       (                                          ) 
     {
         if ( !this._CYCL_ && this._PAGE_ is Chat_Page ctpg && !string.IsNullOrWhiteSpace( ctpg.Input.Text ) )
         {
             this._CYCL_ = true;
             
-            SubSystem.Messaging.Messager.Send( ctpg.Input.Text );
-            ctpg.Input.Clear                 (                 );
+            Messager.Send   ( ctpg.Input.Text );
+            ctpg.Input.Clear(                 );
 
             this._CYCL_ = false;
         }
@@ -407,7 +445,7 @@ public partial class MainWindow : Window
     /// <summary>
     /// 
     /// </summary>
-    private void Discover ( object _, RoutedEventArgs        __   ) 
+    private void Discover   ( object _   , RoutedEventArgs        __   ) 
     {
         this.Discover();
     }
@@ -415,23 +453,80 @@ public partial class MainWindow : Window
     /// <summary>
     /// 
     /// </summary>
-    private void Connect  ( object _, RoutedEventArgs        __   ) 
+    /// <param name = "sndr"></param>
+    private void Select     ( object sndr, RoutedEventArgs        __   ) 
     {
-        // TODO;
+        if ( sndr is not Button bttn || bttn.Tag is not int idx ) return;
+
+        SubSystem.Network.Renderer.Select( idx, bttn );
     }
 
     /// <summary>
     /// 
     /// </summary>
-    private void Login    ( object _, RoutedEventArgs        __   ) 
+    private void Connect    ( object _   , RoutedEventArgs        __   ) 
     {
-        // TODO;
+        if ( this._PAGE_ is not Login_Page lnpg ) return;
+
+        Bridge.Disconnect();
+
+        if ( SubSystem.Network.Renderer.Selected < 0 || !Bridge.Connect( SubSystem.Network.Renderer.Selected ) ) return;
+
+        if ( lnpg.Username != null || lnpg.Password != null || lnpg.Join != null ) return;
+
+        Grid? lipl = ( Grid? )Prefabs.Get_Template( "Login_Panel" )?.LoadContent();
+
+        if ( lipl != null )
+        {
+            lipl.Margin = new Thickness( 100, 10, 100, 10 );
+
+            TextBox? urnm = ( TextBox? )lipl.FindName( "Username" );
+            TextBox? pswd = ( TextBox? )lipl.FindName( "Password" );
+            Button?  join = ( Button?  )lipl.FindName( "Join"     );
+
+            if ( urnm != null ) lnpg.Username = urnm;
+            if ( pswd != null ) lnpg.Password = pswd;
+            if ( join != null )
+            {
+                join.Click += Login;
+
+                lnpg.Join = join;
+            }
+
+            lnpg.Login_Panel.Children.Add( lipl );
+        }
     }
 
     /// <summary>
     /// 
     /// </summary>
-    private void Send     ( object _, RoutedEventArgs        __   ) 
+    private void Disconnect ( object _   , RoutedEventArgs        __   ) 
+    {
+        Bridge.Disconnect();
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    private void Login      ( object _   , RoutedEventArgs        __   ) 
+    {
+        if ( 
+            this._PAGE_ is not Login_Page lnpg              || 
+            string.IsNullOrWhiteSpace( lnpg.Username.Text ) ||
+            string.IsNullOrWhiteSpace( lnpg.Password.Text )
+        ) return;
+
+        if ( !Registry.Authenticate( lnpg.Username.Text, lnpg.Password.Text ) ) return;
+
+        this._cINIT_       (                                     );
+        Messager.Initialize( Bridge.Mode.CNT, lnpg.Username.Text );
+        Messager.Request   ( Messager.ALL                        );
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    private void Send       ( object _   , RoutedEventArgs        __   ) 
     {
         this.Send();
     }
@@ -441,7 +536,7 @@ public partial class MainWindow : Window
     /// <summary>
     /// 
     /// </summary>
-    private void Cycle    ( object _, ScrollChangedEventArgs __   ) 
+    private void Cycle      ( object _   , ScrollChangedEventArgs __   ) 
     {
         if ( !this._CYCL_ && this._PAGE_ is Chat_Page ctpg )
         {
