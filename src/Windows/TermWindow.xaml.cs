@@ -4,6 +4,8 @@
 ///
 /// REMAINING : ALL ( SUBJECT TO FILL )
 
+#region GENERAL HEADER
+
 using System.Windows;
 
 using System.Windows.Input;
@@ -11,11 +13,16 @@ using System.Windows.Input;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 
+#endregion
+#region LANCHAT HEADER
+
 using LanChat.SubSystem.UserInterface;
 using LanChat.SubSystem.Messaging;
 using LanChat.SubSystem.Network;
 using LanChat.SubSystem.Input;
 using LanChat.SubSystem.Authentication;
+
+#endregion
 
 namespace LanChat.Runtime;
 
@@ -24,7 +31,6 @@ namespace LanChat.Runtime;
 /// </summary>
 public partial class TermWindow : Window
 {
-    internal App _APP_;
     private Listener?    _LSNR_ = null ;
 
     internal Terminal_Page _TMPG_;
@@ -33,11 +39,9 @@ public partial class TermWindow : Window
     /// 
     /// </summary>
     /// <param name = "app"></param>
-    public TermWindow ( App app ) 
+    public TermWindow () 
     {
         InitializeComponent();
-
-        this._APP_ = app;
 
         this._tINIT_();
     }
@@ -189,7 +193,7 @@ public partial class TermWindow : Window
     /// </summary>
     private void Exit       ( object _, RoutedEventArgs      __    ) 
     {
-        this._APP_._EXIT_( App.Integration.FUL, this );
+        ( ( App )Application.Current )._EXIT_( App.Focus.FUL, this );
     }
 
     #endregion
@@ -226,7 +230,7 @@ public partial class TermWindow : Window
                     Bridge.Initialize   ( Bridge.Mode.SRV           );
                     Bridge.Start(port, elmts[3]);
 
-                    Registry.Initialize ( Bridge.Mode.SRV           );
+                    Registry.Initialize ( Bridge.Mode.SRV, elmts[1]);
                     Messager.Initialize(Bridge.Mode.SRV, elmts[1]);
                 }
             }

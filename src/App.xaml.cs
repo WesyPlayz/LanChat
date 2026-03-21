@@ -1,6 +1,6 @@
 ﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED   : 3/13/2026 21:01
+/// UPDATED   : 3/18/2026 06:28
 ///
 /// REMAINING : FINISHED ( SUBJECT TO UPDATE )
 
@@ -11,138 +11,154 @@ using System.Windows;
 #endregion
 #region LANCHAT HEADER
 
-using LanChat.SubSystem.Network;
-using LanChat.SubSystem.Messaging;
-using LanChat.SubSystem.Authentication;
+using LanChat.SubSystem.Collections;
 using LanChat.SubSystem.UserInterface;
-using LanChat.SubSystem.Debugging;
 
 #endregion
 
+/// CONTENTS  :
+///
+/// App^Application  - CLAS [ LCRT : 00-00 ]
+/// ^   Focus        - ENUM
+/// ^   Runtime      - ENUM
+/// ^   ENVIRONMENTS - DICT
+/// ^   App      ()  - FUNC [ LCRT : 00-01 ]
+/// ^   OnStartup()  - FUNC [ LCRT : 00-02 ]
+/// ^   _ENTR_   ()  - FUNC [ LCRT : 00-03 ]
+/// ^   _EXIT_   ()  - FUNC [ LCRT : 00-04 ]
+///
 namespace LanChat.Runtime;
 
 /// <summary>
-/// 
+///     <para><b>ID :</b> [ LCRT : 00-00 ]</para>
+///     <para>
+///         <b>Description :</b> 
+///     
+///         App is the entry point for the LanChat application, initializing WPF prefabs and managing window entry and exit.
+///     </para>
 /// </summary>
 public partial class App : Application 
 {
     #region INTERNAL  ENUMS
 
-    internal enum Integration 
+    /// <summary>
+    ///     <para>
+    ///         <b>Description :</b>
+    ///         
+    ///         Focus helps identify how much weight a window has which influences whether exiting it may trigger local shutdown, or application shutdown.
+    ///     </para>
+    /// </summary>
+    internal enum Focus   
     {
-        NIL,
-        PTL,
-        FUL
+        NIL, // No      Focus
+        PTL, // Partial Focus
+        FUL  // Full    Focus
     }
-    internal enum Extention   
+
+    /// <summary>
+    ///     <para>
+    ///         <b>Description :</b>
+    ///         
+    ///         Runtime helps identify what runtime environment a window occupies whether that be idle, client, local-host, or server.
+    ///     </para>
+    /// </summary>
+    internal enum Runtime 
     {
-        NIL,
-        TER
+        IDL, // Idle       runtime;
+        CNT, // Client     runtime;
+        HST, // Local-Host runtime;
+        SRV  // Server     runtime;
     }
 
     #endregion
-    #region INTERNAL  INSTANCE PROPERTIES
 
-    internal InitWindow InitWindow { get; set; }
-    internal TermWindow TermWindow { get; set; }
+    #region INTERNAL  STATIC   FIELDS
+
+    /// <summary>
+    ///     <para>
+    ///         <b>Description :</b>
+    ///         
+    ///         Environments routes incoming runtime identification to lambdas which initialize the respective window.
+    ///     </para>
+    /// </summary>
+    internal static Readonly_Collection < Runtime, Func < App, Window > > ENVIRONMENTS = new ( 
+        new Dictionary < Runtime, Func < App, Window > >
+    {
+        { Runtime.IDL, static Window ( App app ) => new InitWindow() },
+        { Runtime.CNT, static Window ( App app ) => new MainWindow() },
+        { Runtime.HST, static Window ( App app ) => new MainWindow() },
+        { Runtime.SRV, static Window ( App app ) => new TermWindow() }
+    });
 
     #endregion
 
     // CONSTRUCTORS //
 
     /// <summary>
-    /// Description :
-    ///     Initializes a new application filling it's Initialization Window and Terminal Window with null.
+    ///     <para><b>ID : </b>[ LCRT : 00-01 ]</para>
+    ///     <para>
+    ///         <b>Description :</b>
+    ///         
+    ///         The app constructor initializes the app object and the WPF prefabs collection.
+    ///     </para>
     /// </summary>
-    private App () : base () 
-    { 
-        this.InitWindow = null!; 
-        this.TermWindow = null!;
-
-        Prefabs.Initialize();
-    }
+    private App () : base () { Prefabs.Initialize(); SubSystem.Debugging.Debug.AllocConsole(); }
 
     // FUNCTIONS //
 
     #region PROTECTED OVERRIDE FUNCTIONS
 
     /// <summary>
-    /// Description :
-    ///     Initializes the current application after all resources are loaded.
+    ///     <para><b>ID : </b>[ LCRT : 00-02 ]</para>
+    ///     <para>
+    ///         <b>Description :</b>
+    ///         
+    ///         OnStartup invokes on startup of the application and initializes the default window.
+    ///     </para>
     /// </summary>
-    protected override void OnStartup ( StartupEventArgs _ ) => this._INIT_();
+    protected override void OnStartup ( StartupEventArgs _ ) => this._ENTR_();
 
     #endregion
-    #region INTERNAL  INSTANCE WINDOW  MANAGEMENT
+    #region INTERNAL  INSTANCE WINDOW    MANAGEMENT
 
     /// <summary>
-    /// Description :
-    ///     Closes the current window ( if any ) and opens a new instance of the Initialization Window.
+    ///     <para><b>ID : </b>[ LCRT : 00-03 ]</para>
+    ///     <para>
+    ///         <b>Description :</b>
+    ///         
+    ///         _ENTR_ closes the current window if applicable, and initializes the window associated with the selected runtime identity.
+    ///     </para>
     /// </summary>
-    /// <param name = "win"></param>
-    internal void _INIT_ ( Window? win = null                                ) 
+    /// <param name = "rntm"></param>
+    /// <param name = "win" ></param>
+    internal void _ENTR_ ( Runtime rntm = Runtime.IDL, Window? win = null ) 
     {
-        if ( win != null && win is InitWindow ) return;
-
-        win?.Close();
-        Debug.AllocConsole();
-
-        this.InitWindow = new ( this );
-
-        this.InitWindow.Show();
-    }
-
-    /// <summary>
-    /// Description :
-    ///     Closes the current window ( if any ) and opens a new instance of the Terminal Window.
-    /// </summary>
-    /// <param name = "win"></param>
-    internal void _TERM_ ( Window? win = null                                ) 
-    {
-        if ( win != null && win is TermWindow ) return;
+        if ( win != null && rntm == Runtime.IDL && win is InitWindow ) return;
 
         win?.Close();
 
-        this.TermWindow = new TermWindow( this );
+        this.MainWindow = ENVIRONMENTS[ rntm ].Invoke( this );
 
-        this.TermWindow.Show(                           );
+        this.MainWindow.Show();
     }
 
     /// <summary>
-    /// Description :
-    ///     Closes the current window ( if any ) and opens a new instance of the Main Window.
+    ///     <para><b>ID : </b>[ LCRT : 00-04 ]</para>
+    ///     <para>
+    ///         <b>Description :</b>
+    ///         
+    ///         _EXIT_ closes the current window if its focus is partial, and shutsdown the application if its focus is full.
+    ///     </para>
     /// </summary>
-    /// <param name = "win"></param>
-    internal void _MAIN_ ( Window? win = null, Extention ext = Extention.NIL ) 
+    /// <param name = "focs"></param>
+    /// <param name = "win" ></param>
+    internal void _EXIT_ ( Focus   focs = Focus.NIL  , Window? win = null ) 
     {
-        if ( ext != Extention.NIL ) return;
-
-        if ( win != null && win is MainWindow ) return;
-
-        win?.Close();
-
-        this.MainWindow = new MainWindow( this );
-
-        this.MainWindow.Show(                                                          );
-        Bridge.Initialize   ( ext == Extention.NIL ? Bridge.Mode.CNT : Bridge.Mode.SRV );
-        Registry.Initialize ( ext == Extention.NIL ? Bridge.Mode.CNT : Bridge.Mode.SRV );
-        Bridge.Start        (                                                          );
-    }
-
-    /// <summary>
-    /// Description :
-    ///     If given Integration.PTL - the given window will be closed.
-    ///     If Given Integration.FUL - the given window and the current application will close and shutdown.
-    /// </summary>
-    /// <param name = "typ"></param>
-    /// <param name = "win"></param>
-    internal void _EXIT_ ( Integration typ   , Window    win                 ) 
-    {
-        switch ( typ )
+        switch ( focs )
         {
-            case    Integration.PTL : win.Close    (); break; // FOR TEST PURPOSES
-            case    Integration.FUL : this.Shutdown(); break;
-            default                 :                  break;
+            case    Focus.PTL : win?.Close   (); return; // Partial Shutdown;
+            case    Focus.FUL : this.Shutdown(); return; // Full    Shutdown;
+            default           :                  return; // No      Shutdown;
         }
     }
 

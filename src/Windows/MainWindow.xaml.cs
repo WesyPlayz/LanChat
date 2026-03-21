@@ -1,6 +1,6 @@
 ﻿/// AUTHOR    : Ryan L Harding
 ///
-/// UPDATED   : 3/13/2026 11:00
+/// UPDATED   : 3/18/2026 06:12
 /// 
 /// REMAINING : FINISHED ( SUBJECT TO UPDATE )
 
@@ -27,369 +27,552 @@ using LanChat.SubSystem.UserInterface;
 
 #endregion
 
+/// CONTENTS  :
+/// 
+/// MainWindow^Window - CLAS [ LCRT : 02-00 ]
+/// ^   _lPGE_        - FELD
+/// ^   _cPGE_        - FELD
+/// ^   _lSPC_        - FELD
+/// ^   _cSPC_        - FELD
+/// ^   _LSNR_        - FELD
+/// ^   _PAGE_        - FELD
+/// ^   _CYCL_        - FELD
+/// ^   MainWindow()  - FUNC [ LCRT : 02-01 ]
+/// ^   _INIT_    ()  - FUNC [ LCRT : 02-02 ]
+/// ^   _SWCH_    ()  - FUNC [ LCRT : 02-03 ]
+/// ^   _EXIT_    ()  - FUNC [ LCRT : 02-04 ]
+/// ^   _DRAG_    ()  - EVNT [ LCRT : 02-05 ]
+/// ^   _MNMZ_    ()  - EVNT [ LCRT : 02-06 ]
+/// ^   _FULL_    ()  - EVNT [ LCRT : 02-07 ]
+/// ^   _EXIT_    ()  - EVNT [ LCRT : 02-08 ]
+/// ^   _INVK_    ()  - EVNT [ LCRT : 02-09 ]
+/// ^   _TAB_     ()  - FUNC [ LCRT : 02-10 ]
+/// ^   _ENTR_    ()  - FUNC [ LCRT : 02-11 ]
+/// ^   _ENTR_    ()  - EVNT [ LCRT : 02-12 ]
+/// ^   _SLCT_    ()  - EVNT [ LCRT : 02-13 ]
+/// ^   _CNCT_    ()  - EVNT [ LCRT : 02-14 ]
+/// ^   _DNCT_    ()  - EVNT [ LCRT : 02-15 ]
+/// ^   _LGIN_    ()  - EVNT [ LCRT : 02-16 ]
+/// ^   _DAMP_    ()  - EVNT [ LCRT : 02-17 ]
+/// ^   _SCRL_    ()  - EVNT [ LCRT : 02-18 ]
+/// 
 namespace LanChat.Runtime;
 
 /// <summary>
+///     <para><b>ID :</b> [ LCRT : 02-00 ]</para>
+///     <para>
+///         <b>Description :</b> 
+///     
 /// 
+///     </para>
 /// </summary>
 public partial class MainWindow : Window
 {
+    #region PRIVATE ENUMS
+
+    /// <summary>
+    ///     <para>
+    ///         <b>Description :</b> 
+    ///     
+    /// 
+    ///     </para>
+    /// </summary>
+    private enum Page
+    {
+        NIL,
+        LOG,
+        CHT
+    }
+
+    #endregion
+
     #region PRIVATE INSTANCE FIELDS
 
-    private App          _APP_         ;
-    private Listener?    _LSNR_ = null ;
+    /// <summary>
+    ///     <para>
+    ///         <b>Description :</b> 
+    ///     
+    /// 
+    ///     </para>
+    /// </summary>
+    private (
+        DataTemplate _SERV_ ,
 
-    private uiPage?      _PAGE_ = null ;
+        ScrollViewer _SCRL_ ,
+        StackPanel   _SERVs_,
+        TextBox      _INPT_ ,
 
-    private DataTemplate _lTMP_        ;
-    private DataTemplate _cTMP_        ;
+        StackPanel   _PANL_ ,
+        
+        Grid         _LGIN_ ,
 
-    private bool         _CYCL_ = false;
+        TextBox      _URNM_ ,
+        TextBox      _PSWD_ 
+    ) _lPGE_;
+
+    /// <summary>
+    ///     <para>
+    ///         <b>Description :</b> 
+    ///     
+    /// 
+    ///     </para>
+    /// </summary>
+    private (
+        DataTemplate _MSG_ ,
+        DataTemplate _CLNT_,
+
+        ScrollViewer _SCRL_,
+        StackPanel   _MSGs_,
+        TextBox      _INPT_,
+
+        ScrollViewer _ACRL_,
+        StackPanel   _ACTV_,
+        StackPanel   _INAC_
+    ) _cPGE_;
+
+    /// <summary>
+    ///     <para>
+    ///         <b>Description :</b> 
+    ///     
+    /// 
+    ///     </para>
+    /// </summary>
+    private Grid     _lSPC_           ;
+
+    /// <summary>
+    ///     <para>
+    ///         <b>Description :</b> 
+    ///     
+    /// 
+    ///     </para>
+    /// </summary>
+    private Grid     _cSPC_           ;
+
+    /// <summary>
+    ///     <para>
+    ///         <b>Description :</b> 
+    ///     
+    /// 
+    ///     </para>
+    /// </summary>
+    private Listener _LSNR_ = null!   ;
+
+    /// <summary>
+    ///     <para>
+    ///         <b>Description :</b> 
+    ///     
+    /// 
+    ///     </para>
+    /// </summary>
+    private Page     _PAGE_ = Page.NIL;
+
+    /// <summary>
+    ///     <para>
+    ///         <b>Description :</b> 
+    ///     
+    /// 
+    ///     </para>
+    /// </summary>
+    private bool     _CYCL_ = false   ;
 
     #endregion
 
     // CONSTRUCTORS //
 
     /// <summary>
+    ///     <para><b>ID :</b> [ LCRT : 02-01 ]</para>
+    ///     <para>
+    ///         <b>Description :</b> 
+    ///     
     /// 
+    ///     </para>
     /// </summary>
-    /// <param name = "app"></param>
-    internal MainWindow ( App app ) 
+    internal MainWindow () 
     {
         InitializeComponent();
 
         Style?           styl = Prefabs.Get_Style            ( "Flexible_Window" );
-        SolidColorBrush? bkgd = Prefabs.Get_Brush            ( "Primary6"        );
+
+        SolidColorBrush? brsh = Prefabs.Get_Brush            ( "Primary6"        );
 
         DataTemplate?    sTmp = Prefabs.Get_Template         ( "Server"          );
         DataTemplate?    uTmp = Prefabs.Get_Template         ( "Client"          );
         DataTemplate?    mTmp = Prefabs.Get_Template         ( "Message"         );
+
         DataTemplate?    lTmp = ( DataTemplate? )FindResource( "Login_Page"      );
         DataTemplate?    cTmp = ( DataTemplate? )FindResource( "Chat_Page"       );
 
-        if ( sTmp == null || uTmp == null || mTmp == null || lTmp == null || cTmp == null ) app._EXIT_( App.Integration.FUL, this );
+        if (
+            styl == null || brsh == null || sTmp == null ||
+            uTmp == null || mTmp == null || lTmp == null ||
+            cTmp == null
+        ) this._EXIT_();
 
-        this._APP_                   = app  ;
-        this.Style                   = styl!;
-        this.Screen_Space.Background = bkgd!;
+        this.Tag                     = App.Focus.FUL;
+        this.Style                   = styl         ;
+        this.Screen_Space.Background = brsh         ;
 
-        this._lTMP_                  = lTmp!;
-        this._cTMP_                  = cTmp!;
+        this._lPGE_._SERV_           = sTmp!        ;
+        this._cPGE_._CLNT_           = uTmp!        ;
+        this._cPGE_._MSG_            = mTmp!        ;
 
-        Login_Page.Server = sTmp!;
-        Chat_Page.Client  = uTmp!;
-        Chat_Page.Message = mTmp!;
+        Grid? lisp = ( Grid? )lTmp!.LoadContent();
+        Grid? ctsp = ( Grid? )cTmp!.LoadContent();
 
-        this._lINIT_(      );
+        if ( lisp == null || ctsp == null ) this._EXIT_();
+
+        this._lSPC_ = lisp!;
+        this._cSPC_ = ctsp!;
+
+        if ( !this._INIT_() ) this._EXIT_();
+
+        this._SWCH_();
+
+        Bridge.Initialize( Bridge.Mode.CNT );
+        Bridge.Start     (                 );
     }
+
+    // FUNCTIONS //
 
     #region PRIVATE INSTANCE INITIALIZERS
-
+    
     /// <summary>
+    ///     <para><b>ID :</b> [ LCRT : 02-02 ]</para>
+    ///     <para>
+    ///         <b>Description :</b> 
+    ///     
     /// 
+    ///     </para>
     /// </summary>
-    private void _lINIT_ () 
+    /// <returns></returns>
+    private bool _INIT_  () 
     {
-        this.Screen_Space.Child = null;
+        // EFFECTS //
 
-        Login_Page flip = new                                                                   ();  
+        DropShadowEffect? lsdw = Prefabs.Get_Effect< DropShadowEffect >( "Shadow_Left"          )               ;
 
-        Grid       lipg = ( Grid    )this._lTMP_.LoadContent                                    ();
-        Border?    hedr = ( Border? )Prefabs.Get_Template( "Header"               )?.LoadContent();
-        Border?    lbdr = ( Border? )Prefabs.Get_Template( "Left_Border"          )?.LoadContent();
-        Border?    bbdr = ( Border? )Prefabs.Get_Template( "Bottom_Border"        )?.LoadContent();
-        Border?    lipl = ( Border? )Prefabs.Get_Template( "Panel"                )?.LoadContent();
-        Grid?      svwd = ( Grid?   )Prefabs.Get_Template( "Extra_Element_Window" )?.LoadContent();
+        // HEADER //
 
-        if ( hedr != null )
-        {
-            hedr.MouseLeftButtonDown += Drag;
+        Border?           hedr = ( Border?       )Prefabs.Get_Template ( "Header"               )?.LoadContent();
+        Border?           lbdr = ( Border?       )Prefabs.Get_Template ( "Left_Border"          )?.LoadContent();
+        Border?           bbdr = ( Border?       )Prefabs.Get_Template ( "Bottom_Border"        )?.LoadContent();
 
-            Grid.SetRowSpan   ( hedr, 2 );
-            Grid.SetColumnSpan( hedr, 6 );
+        // SECTIONS //
 
-            Button       mnbt = ( Button       )hedr.FindName( "Minimize"   );
-            ToggleButton fsbt = ( ToggleButton )hedr.FindName( "Fullscreen" );
-            Button       etbt = ( Button       )hedr.FindName( "Exit"       );
+        Border?           lipn = ( Border?       )Prefabs.Get_Template ( "Panel"                )?.LoadContent();
 
-            if ( mnbt != null ) mnbt.Click += Minimize  ;
-            if ( fsbt != null ) fsbt.Click += Fullscreen;
-            if ( etbt != null ) etbt.Click += Exit      ;
+        ScrollViewer?     acpn = ( ScrollViewer? )Prefabs.Get_Template ( "Boolean_Panel"        )?.LoadContent();
 
-            lipg.Children.Add( hedr );
-        }
-        if ( lbdr != null )
-        {
-            Grid.SetRow    ( lbdr, 2 );
-            Grid.SetRowSpan( lbdr, 4 );
+        // MINI-WINDOWS //
 
-            lipg.Children.Add( lbdr );
-        }
-        if ( bbdr != null )
-        {
-            Grid.SetRow       ( bbdr, 5 );
-            Grid.SetColumn    ( bbdr, 1 );
-            Grid.SetColumnSpan( bbdr, 4 );
+        Grid?             svwd = ( Grid?         )Prefabs.Get_Template ( "Extra_Element_Window" )?.LoadContent();
+        Grid?             ctwd = ( Grid?         )Prefabs.Get_Template ( "Extra_Element_Window" )?.LoadContent();
 
-            lipg.Children.Add( bbdr );
-        }
-        if ( lipl != null )
-        {
-            Grid.SetRow       ( lipl, 2 );
-            Grid.SetRowSpan   ( lipl, 4 );
-            Grid.SetColumn    ( lipl, 4 );
-            Grid.SetColumnSpan( lipl, 2 );
+        // INPUT //
 
-            lipl.Padding = new                                   ( 0            , 0, 5, 5 );
-            lipl.Effect  = Prefabs.Get_Effect< DropShadowEffect >( "Shadow_Left"          );
+        Border?           sipp = ( Border?       )Prefabs.Get_Template ( "Single_Input_Panel"   )?.LoadContent();
+        Border?           mipp = ( Border?       )Prefabs.Get_Template ( "Multi_Input_Panel"    )?.LoadContent();
 
-            StackPanel? pnsc = ( StackPanel? )lipl.FindName( "Panel_Space" );
+        // LOGIN INTERFACE //
 
-            if ( pnsc != null )
-            {
-                Button cnct = new Button
-                {
-                    Name    = "Connect",
-                    Content = "Connect",
-                    Margin  = new Thickness( 5 )
-                };
-                cnct.Click += Connect;
+        Grid?             cnct = ( Grid?         )Prefabs.Get_Template ( "Text_Button"          )?.LoadContent();
+        Grid?             lgin = ( Grid?         )Prefabs.Get_Template ( "Login_Panel"          )?.LoadContent();
 
-                pnsc.Children.Add( cnct );
+        if (
+            lsdw == null || hedr == null || lbdr == null || 
+            bbdr == null || lipn == null || acpn == null || 
+            svwd == null || ctwd == null || sipp == null ||
+            mipp == null || cnct == null || lgin == null
+        ) return false;
 
-                flip.Login_Panel = pnsc;
-            }
-            lipg.Children.Add( lipl );
-        }
-        if ( svwd != null )
-        {
-            Grid.SetRow   ( svwd, 3 );
-            Grid.SetColumn( svwd, 2 );
+        // HEADER //
 
-            TextBlock?    ttle = ( TextBlock?    )svwd.FindName                                            ( "Title"        );
-            ScrollViewer? scrl = ( ScrollViewer? )svwd.FindName                                            ( "Scroll_Panel" );
-            Border?       ippl = ( Border?       )Prefabs.Get_Template( "Single_Input_Panel" )?.LoadContent(                );
+        ToggleButton? fsbt  = ( ToggleButton? )hedr.FindName( "Fullscreen"   );
 
-            if ( scrl != null )
-            {
-                flip.Scroll_Space       = scrl    ;
-                scrl.PreviewMouseWheel += Dampener;
+        Button?       mnbt  = ( Button?       )hedr.FindName( "Minimize"     );
+        Button?       etbt  = ( Button?       )hedr.FindName( "Exit"         );
 
-                StackPanel?   srvs = ( StackPanel? )svwd.FindName( "Elements" ) ;
+        // ENTER //
 
-                if ( srvs != null ) 
-                {
-                    flip.Servers = srvs;
+        Button?       sven  = ( Button?       )sipp.FindName( "Enter"        );
+        Button?       cten  = ( Button?       )mipp.FindName( "Enter"        );
 
-                    SubSystem.Network.Renderer.Bind      ( Select                        );
-                    SubSystem.Network.Renderer.Initialize( scrl, srvs, Login_Page.Server );
-                }
-            }
-            if ( ttle != null ) ttle!.Text = "Servers";
-            if ( ippl != null )
-            {
-                Grid.SetRow   ( ippl, 2 );
-                Grid.SetColumn( ippl, 1 );
+        // LOGIN BUTTONS //
 
-                TextBox? inpt = ( TextBox? )ippl.FindName( "Input" );
-                Button?  entr = ( Button?  )ippl.FindName( "Enter" );
+        Button?       cbtn  = ( Button?       )cnct.FindName( "Button"       );
+        Button?       jbtn  = ( Button?       )lgin.FindName( "Join"         );
 
-                if ( inpt != null ) 
-                {
-                    flip.Input           = inpt  ;
-                    inpt.PreviewKeyDown += Invoke;
-                }
-                if ( entr != null ) entr.Click += Discover;
+        // TITLES //
 
-                svwd.Children.Add( ippl );
-            }
-            lipg.Children.Add( svwd );
-        }
-        this.Screen_Space.Child = lipg;
-        this._PAGE_             = flip;
-        this._LSNR_             = new ([
-            ( Key.Enter, [ this.Discover ] ),
-            ( Key.Tab  , [ this.Tab      ] )
+        TextBlock?    svtl  = ( TextBlock?    )svwd.FindName( "Title"        );
+        TextBlock?    cttl  = ( TextBlock?    )ctwd.FindName( "Title"        );
+
+        TextBlock?    labl  = ( TextBlock?    )cnct.FindName( "Label"        );
+
+        // INPUT //
+
+        TextBox?      svip  = ( TextBox?      )sipp.FindName( "Input"        );
+        TextBox?      ctip  = ( TextBox?      )mipp.FindName( "Input"        );
+
+        TextBox?      urnm  = ( TextBox?      )lgin.FindName( "Username"     );
+        TextBox?      pswd  = ( TextBox?      )lgin.FindName( "Password"     );
+
+        // SECTIONS //
+
+        StackPanel?   servs = ( StackPanel?   )svwd.FindName( "Elements"     );
+        StackPanel?   msgs  = ( StackPanel?   )ctwd.FindName( "Elements"     );
+
+        StackPanel?   pnsp  = ( StackPanel?   )lipn.FindName( "Panel_Space"  );
+        StackPanel?   actv  = ( StackPanel?   )acpn.FindName( "True"         );
+        StackPanel?   inac  = ( StackPanel?   )acpn.FindName( "False"        );
+
+        // SCROLL //
+
+        ScrollViewer? svsl  = ( ScrollViewer? )svwd.FindName( "Scroll_Panel" );
+        ScrollViewer? ctsl  = ( ScrollViewer? )ctwd.FindName( "Scroll_Panel" );
+
+        if ( 
+            fsbt == null || mnbt == null || etbt  == null ||
+            sven == null || cten == null || cbtn  == null ||
+            jbtn == null || svtl == null || cttl  == null || 
+            labl == null || svip == null || ctip  == null ||
+            urnm == null || pswd == null || servs == null || 
+            msgs == null || pnsp == null || actv  == null || 
+            inac == null || svsl == null || ctsl  == null
+        ) return false;
+
+        hedr.MouseLeftButtonDown += this._DRAG_;
+
+        acpn.PreviewMouseWheel   += this._DAMP_;
+        svsl.PreviewMouseWheel   += this._DAMP_;
+        ctsl.PreviewMouseWheel   += this._DAMP_;
+
+        ctsl.ScrollChanged       += this._SCRL_;
+
+        fsbt.Click               += this._FULL_;
+
+        mnbt.Click               += this._MNMZ_;
+        etbt.Click               += this._EXIT_;
+        sven.Click               += this._ENTR_;
+        cten.Click               += this._ENTR_;
+        cbtn.Click               += this._CNCT_;
+        jbtn.Click               += this._LGIN_;
+
+        svip.PreviewKeyDown      += this._INVK_;
+        ctip.PreviewKeyDown      += this._INVK_;
+
+        Grid.SetRow       ( lbdr       , 1 );
+        Grid.SetRow       ( bbdr       , 3 );
+        Grid.SetRow       ( this._lSPC_, 2 );
+        Grid.SetRow       ( this._cSPC_, 2 );
+        Grid.SetRow       ( svwd       , 1 );
+        Grid.SetRow       ( ctwd       , 1 );
+        Grid.SetRow       ( sipp       , 2 );
+        Grid.SetRow       ( mipp       , 2 );
+
+        Grid.SetRowSpan   ( hedr       , 2 );
+        Grid.SetRowSpan   ( lbdr       , 3 );
+        Grid.SetRowSpan   ( lipn       , 3 );
+        Grid.SetRowSpan   ( acpn       , 3 );
+
+        Grid.SetColumn    ( bbdr       , 1 );
+        Grid.SetColumn    ( this._lSPC_, 1 );
+        Grid.SetColumn    ( this._cSPC_, 1 );
+        Grid.SetColumn    ( lipn       , 3 );
+        Grid.SetColumn    ( acpn       , 3 );
+        Grid.SetColumn    ( svwd       , 1 );
+        Grid.SetColumn    ( ctwd       , 1 );
+        Grid.SetColumn    ( sipp       , 1 );
+        Grid.SetColumn    ( mipp       , 1 );
+
+        Grid.SetColumnSpan( hedr       , 3 );
+        Grid.SetColumnSpan( this._lSPC_, 2 );
+        Grid.SetColumnSpan( this._cSPC_, 2 );
+        Grid.SetColumnSpan( lipn       , 2 );
+        Grid.SetColumnSpan( acpn       , 2 );
+
+        lipn.Padding   = new( 0  , 0 , 5  , 5  );
+        lipn.Effect    = lsdw                   ;
+
+        acpn.Padding   = new( 0  , 0 , 5  , 5  );
+        acpn.Effect    = lsdw                   ;
+
+        cbtn.Margin    = new( 0  , 25, 0  , 25 );
+
+        lgin.Margin    = new( 100, 10, 100, 10 );
+
+        labl.Text      = "Connect"              ;
+        labl.Margin    = new( 0  , 25, 0  , 25 );
+
+        ctip.MaxHeight = 300                    ;
+
+        svtl.Text      = "Servers"              ;
+        cttl.Text      = "Chat"                 ;
+
+        this._lPGE_._SCRL_  = svsl ;
+        this._lPGE_._SERVs_ = servs;
+        this._lPGE_._INPT_  = svip ;
+        this._lPGE_._PANL_  = pnsp ;
+        this._lPGE_._LGIN_  = lgin ;
+        this._lPGE_._URNM_  = urnm ;
+        this._lPGE_._PSWD_  = pswd ;
+        this._cPGE_._SCRL_  = ctsl ;
+        this._cPGE_._MSGs_  = msgs ;
+        this._cPGE_._INPT_  = ctip ;
+        this._cPGE_._ACRL_  = acpn ;
+        this._cPGE_._ACTV_  = actv ;
+        this._cPGE_._INAC_  = inac ;
+
+        svwd.Children.Add             ( sipp        );
+        ctwd.Children.Add             ( mipp        );
+        pnsp.Children.Add             ( cnct        );
+
+        this._lSPC_.Children.Add      ( lipn        );
+        this._lSPC_.Children.Add      ( svwd        );
+        this._cSPC_.Children.Add      ( acpn        );
+        this._cSPC_.Children.Add      ( ctwd        );
+
+        this.Screen_Space.Children.Add( hedr        );
+        this.Screen_Space.Children.Add( lbdr        );
+        this.Screen_Space.Children.Add( bbdr        );
+
+        this._LSNR_ = new ([
+            ( Key.Enter, [ this._ENTR_ ] ),
+            ( Key.Tab  , [ this._TAB_  ] )
         ]);
-        SubSystem.Network.Renderer.Start();
+        return true;
     }
 
+    #endregion
+    #region PRIVATE INSTANCE FUNCTIONS
+
     /// <summary>
-    /// 
+    ///     <para><b>ID :</b> [ LCRT : 02-03 ]</para>
+    ///     <para>
+    ///         <b>Description :</b> 
+    ///     
+    ///     
+    ///     </para>
     /// </summary>
-    private void _cINIT_ () 
+    private void _SWCH_ () 
     {
-        this.Screen_Space.Child = null;
-        
-        Chat_Page     fctp = new                                                                         ();
-
-        Grid          ctpg = ( Grid          )this._cTMP_.LoadContent                                    ();
-        Border?       hedr = ( Border?       )Prefabs.Get_Template( "Header"               )?.LoadContent();
-        Border?       lbdr = ( Border?       )Prefabs.Get_Template( "Left_Border"          )?.LoadContent();
-        Border?       bbdr = ( Border?       )Prefabs.Get_Template( "Bottom_Border"        )?.LoadContent();
-        ScrollViewer? blpl = ( ScrollViewer? )Prefabs.Get_Template( "Boolean_Panel"        )?.LoadContent();
-        Grid?         mgwd = ( Grid?         )Prefabs.Get_Template( "Extra_Element_Window" )?.LoadContent();
-
-        if ( hedr != null )
+        if      ( this._PAGE_ != Page.LOG )
         {
-            hedr.MouseLeftButtonDown += Drag;
+            if ( this.Screen_Space.Children.Contains( this._cSPC_ ) ) this.Screen_Space.Children.Remove( this._cSPC_ );
 
-            Grid.SetRowSpan   ( hedr, 2 );
-            Grid.SetColumnSpan( hedr, 6 );
+            this.Screen_Space.Children.Add       ( this._lSPC_                                                 );
+            SubSystem.Network.Renderer.Bind      ( this._SLCT_                                                 );
+            SubSystem.Network.Renderer.Initialize( this._lPGE_._SCRL_, this._lPGE_._SERVs_, this._lPGE_._SERV_ );
+            SubSystem.Network.Renderer.Start     (                                                             );
 
-            Button       mnbt = ( Button       )hedr.FindName( "Minimize"   );
-            ToggleButton fsbt = ( ToggleButton )hedr.FindName( "Fullscreen" );
-            Button       etbt = ( Button       )hedr.FindName( "Exit"       );
-
-            if ( mnbt != null ) mnbt.Click += Minimize  ;
-            if ( fsbt != null ) fsbt.Click += Fullscreen;
-            if ( etbt != null ) etbt.Click += Exit      ;
-
-            ctpg.Children.Add( hedr );
+            this._PAGE_ = Page.LOG;
         }
-        if ( lbdr != null )
+        else if ( this._PAGE_ != Page.CHT )
         {
-            Grid.SetRow    ( lbdr, 2 );
-            Grid.SetRowSpan( lbdr, 4 );
+            if ( this.Screen_Space.Children.Contains( this._lSPC_ ) ) this.Screen_Space.Children.Remove( this._lSPC_ );
 
-            ctpg.Children.Add( lbdr );
+            this.Screen_Space.Children.Add              ( this._cSPC_                                                                    );
+            SubSystem.Authentication.Renderer.Initialize( this._cPGE_._SCRL_, this._cPGE_._ACTV_, this._cPGE_._INAC_, this._cPGE_._CLNT_ );
+            SubSystem.Messaging.Renderer.Initialize     ( this._cPGE_._SCRL_, this._cPGE_._MSGs_, this._cPGE_._MSG_ , 20                 );
+            SubSystem.Authentication.Renderer.Start     (                                                                                );
+            Registry.Start                              (                                                                                );
+
+            this._PAGE_ = Page.CHT;
         }
-        if ( bbdr != null )
-        {
-            Grid.SetRow       ( bbdr, 5 );
-            Grid.SetColumn    ( bbdr, 1 );
-            Grid.SetColumnSpan( bbdr, 3 );
-
-            ctpg.Children.Add( bbdr );
-        }
-        if ( blpl != null )
-        {
-            blpl.PreviewMouseWheel += Dampener                                                        ;
-            blpl.Padding            = new                                   ( 0            , 0, 5, 5 );
-            blpl.Effect             = Prefabs.Get_Effect< DropShadowEffect >( "Shadow_Left"          );
-
-            Grid.SetRow       ( blpl, 2 );
-            Grid.SetRowSpan   ( blpl, 4 );
-            Grid.SetColumn    ( blpl, 4 );
-            Grid.SetColumnSpan( blpl, 2 );
-
-            StackPanel? actv = ( StackPanel? )blpl.FindName( "True"  );
-            StackPanel? inac = ( StackPanel? )blpl.FindName( "False" );
-
-            if ( actv != null ) fctp.Active_Clients   = actv;
-            if ( inac != null ) fctp.Inactive_Clients = inac;
-
-            if ( actv != null && inac != null ) SubSystem.Authentication.Renderer.Initialize( blpl, actv, inac, Chat_Page.Client );
-
-            ctpg.Children.Add( blpl );
-        }
-        if ( mgwd != null )
-        {
-            Grid.SetRow   ( mgwd, 3 );
-            Grid.SetColumn( mgwd, 2 );
-
-            TextBlock?    ttle = ( TextBlock?    )mgwd.FindName                                           ( "Title"        );
-            ScrollViewer? scrl = ( ScrollViewer? )mgwd.FindName                                           ( "Scroll_Panel" );
-            StackPanel?   msgs = ( StackPanel?   )mgwd.FindName                                           ( "Elements"     );
-            Border?       ippl = ( Border?       )Prefabs.Get_Template( "Multi_Input_Panel" )?.LoadContent(                );
-
-            if ( ttle != null ) ttle!.Text = "Chat";
-            if ( scrl != null )
-            {
-                fctp.Scroll_Space       = scrl    ;
-                scrl.PreviewMouseWheel += Dampener;
-                scrl.ScrollChanged     += Cycle   ;
-            }
-            if ( msgs != null ) fctp.Messages = msgs;
-            if ( ippl != null )
-            {
-                Grid.SetRow   ( ippl, 2 );
-                Grid.SetColumn( ippl, 1 );
-
-                TextBox? inpt = ( TextBox? )ippl.FindName( "Input" );
-                Button?  entr = ( Button?  )ippl.FindName( "Enter" );
-
-                if ( inpt != null )
-                {
-                    fctp.Input           = inpt  ;
-                    inpt.PreviewKeyDown += Invoke;
-                    inpt.MaxHeight       = 300   ;
-                }
-                if ( entr != null ) entr.Click += Send;
-
-                mgwd.Children.Add( ippl );
-            }
-            ctpg.Children.Add( mgwd );
-
-            if ( scrl != null && msgs != null ) SubSystem.Messaging.Renderer.Initialize( scrl, msgs, Chat_Page.Message, 20 );
-        }
-        this.Screen_Space.Child = ctpg;
-        this._PAGE_             = fctp;
-        this._LSNR_             = new ([
-            ( Key.Enter, [ this.Send ] ),
-            ( Key.Tab  , [ this.Tab  ] )
-        ]);
-        SubSystem.Authentication.Renderer.Start();
-        Registry.Start();
     }
 
     #endregion
     #region PRIVATE INSTANCE TRANSFORMERS
 
     /// <summary>
+    ///     <para><b>ID :</b> [ LCRT : 02-04 ]</para>
+    ///     <para>
+    ///         <b>Description :</b> 
+    ///     
     /// 
+    ///     </para>
     /// </summary>
-    /// <param name = "input"></param>
-    private void Drag       ( object _, MouseButtonEventArgs input ) 
-    { 
-        if ( input.ButtonState == MouseButtonState.Pressed ) DragMove(); 
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name = "input"></param>
-    private void Dampener   ( object _, MouseWheelEventArgs  input ) 
+    private void _EXIT_ (                                        ) 
     {
-        //this._CTPG_._mPNL_.ScrollToVerticalOffset( this._CTPG_._mPNL_.VerticalOffset - input.Delta * 0.25 );
+        if ( this._PAGE_ == Page.CHT ) Registry.Logout();
 
-        input.Handled = true;
+        if ( this.Tag is App.Focus fcus )
+        {
+            ( ( App )Application.Current )._EXIT_( fcus, this );
+
+            return;
+        }
+        ( ( App )Application.Current )._EXIT_( App.Focus.FUL, this );
+    }
+
+    // BUTTON EVENTS //
+
+    /// <summary>
+    ///     <para><b>ID :</b> [ LCRT : 02-05 ]</para>
+    ///     <para>
+    ///         <b>Description :</b> 
+    ///     
+    /// 
+    ///     </para>
+    /// </summary>
+    /// <param name = "inpt"></param>
+    private void _DRAG_ ( object _   , MouseButtonEventArgs inpt ) 
+    { 
+        if ( inpt.ButtonState == MouseButtonState.Pressed ) this.DragMove(); 
     }
 
     /// <summary>
+    ///     <para><b>ID :</b> [ LCRT : 02-06 ]</para>
+    ///     <para>
+    ///         <b>Description :</b> 
+    ///     
     /// 
+    ///     </para>
     /// </summary>
-    private void Minimize   ( object _, RoutedEventArgs      __    ) 
+    private void _MNMZ_ ( object _   , RoutedEventArgs      __   ) 
     {
         this.WindowState = WindowState.Minimized;
     }
-    
+
     /// <summary>
+    ///     <para><b>ID :</b> [ LCRT : 02-07 ]</para>
+    ///     <para>
+    ///         <b>Description :</b> 
+    ///     
     /// 
+    ///     </para>
     /// </summary>
-    private void Fullscreen ( object _, RoutedEventArgs      __    ) 
+    private void _FULL_ ( object _   , RoutedEventArgs      __   ) 
     {
         this.WindowState = this.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
     }
-    
-    /// <summary>
-    /// 
-    /// </summary>
-    private void Exit       ( object _, RoutedEventArgs      __    ) 
-    {
-        if (this._PAGE_ is Chat_Page ctpg ) Registry.Leave();
 
-        this._APP_._EXIT_( App.Integration.FUL, this );
+    /// <summary>
+    ///     <para><b>ID :</b> [ LCRT : 02-08 ]</para>
+    ///     <para>
+    ///         <b>Description :</b> 
+    ///     
+    /// 
+    ///     </para>
+    /// </summary>
+    private void _EXIT_ ( object _   , RoutedEventArgs      __   ) 
+    {
+        this._EXIT_();
     }
 
     #endregion
     #region PRIVATE INSTANCE EVENTS
 
     /// <summary>
+    ///     <para><b>ID :</b> [ LCRT : 02-09 ]</para>
+    ///     <para>
+    ///         <b>Description :</b> 
+    ///     
     /// 
+    ///     </para>
     /// </summary>
     /// <param name = "inpt"></param>
-    private void Invoke     ( object _   , KeyEventArgs           inpt ) 
+    private void _INVK_ ( object _   , KeyEventArgs       inpt ) 
     {
         if ( this._LSNR_ == null ) return;
 
@@ -399,62 +582,77 @@ public partial class MainWindow : Window
     // TEXT BOX EVENTS //
 
     /// <summary>
+    ///     <para><b>ID :</b> [ LCRT : 02-10 ]</para>
+    ///     <para>
+    ///         <b>Description :</b> 
+    ///     
     /// 
+    ///     </para>
     /// </summary>
-    private void Tab        (                                          ) 
+    private void _TAB_  (                                      ) 
     {
-        if ( this._PAGE_ is Chat_Page ctpg )
+        if      ( this._PAGE_ == Page.LOG )
         {
-            int pos = ctpg.Input.CaretIndex;
+            int pos = this._lPGE_._INPT_.CaretIndex;
 
-            ctpg.Input.Text       = ctpg.Input.Text.Insert( pos, "\t" );
-            ctpg.Input.CaretIndex = pos + 1                            ;
+            this._lPGE_._INPT_.Text       = this._lPGE_._INPT_.Text.Insert( pos, "\t" );
+            this._lPGE_._INPT_.CaretIndex = pos + 1                                    ;
+        }
+        else if ( this._PAGE_ == Page.CHT )
+        {
+            int pos = this._cPGE_._INPT_.CaretIndex;
+
+            this._cPGE_._INPT_.Text       = this._cPGE_._INPT_.Text.Insert( pos, "\t" );
+            this._cPGE_._INPT_.CaretIndex = pos + 1                                    ;
         }
     }
 
     /// <summary>
+    ///     <para><b>ID :</b> [ LCRT : 02-11 ]</para>
+    ///     <para>
+    ///         <b>Description :</b> 
+    ///     
     /// 
+    ///     </para>
     /// </summary>
-    private void Discover   (                                          ) 
+    private void _ENTR_ (                                      ) 
     {
-        if ( this._PAGE_ is Login_Page lipg && !string.IsNullOrWhiteSpace( lipg.Input.Text ) )
+        if      ( this._PAGE_ == Page.LOG && !string.IsNullOrWhiteSpace( this._lPGE_._INPT_.Text ) )
         {
-            Bridge.Discover ( lipg.Input.Text );
-            lipg.Input.Clear(                 );
+            Bridge.Discover         ( this._lPGE_._INPT_.Text );
+            this._lPGE_._INPT_.Clear(                         );
         }
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    private void Send       (                                          ) 
-    {
-        if ( !this._CYCL_ && this._PAGE_ is Chat_Page ctpg && !string.IsNullOrWhiteSpace( ctpg.Input.Text ) )
+        else if ( this._PAGE_ == Page.CHT && !string.IsNullOrWhiteSpace( this._cPGE_._INPT_.Text ) )
         {
-            this._CYCL_ = true;
-            
-            Messager.Send   ( ctpg.Input.Text );
-            ctpg.Input.Clear(                 );
-
-            this._CYCL_ = false;
+            Messager.Send           ( this._cPGE_._INPT_.Text );
+            this._cPGE_._INPT_.Clear(                         );
         }
     }
 
     // BUTTON EVENTS //
 
     /// <summary>
+    ///     <para><b>ID :</b> [ LCRT : 02-12 ]</para>
+    ///     <para>
+    ///         <b>Description :</b> 
+    ///     
     /// 
+    ///     </para>
     /// </summary>
-    private void Discover   ( object _   , RoutedEventArgs        __   ) 
+    private void _ENTR_ ( object _   , RoutedEventArgs    __   ) 
     {
-        this.Discover();
+        this._ENTR_();
     }
 
     /// <summary>
+    ///     <para><b>ID :</b> [ LCRT : 02-13 ]</para>
+    ///     <para>
+    ///         <b>Description :</b> 
+    ///     
     /// 
+    ///     </para>
     /// </summary>
-    /// <param name = "sndr"></param>
-    private void Select     ( object sndr, RoutedEventArgs        __   ) 
+    private void _SLCT_ ( object sndr, RoutedEventArgs    __   ) 
     {
         if ( sndr is not Button bttn || bttn.Tag is not int idx ) return;
 
@@ -462,83 +660,97 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
+    ///     <para><b>ID :</b> [ LCRT : 02-14 ]</para>
+    ///     <para>
+    ///         <b>Description :</b> 
+    ///     
     /// 
+    ///     </para>
     /// </summary>
-    private void Connect    ( object _   , RoutedEventArgs        __   ) 
+    private void _CNCT_ ( object _   , RoutedEventArgs    __   ) 
     {
-        if ( this._PAGE_ is not Login_Page lnpg ) return;
-
+        if ( this._PAGE_ != Page.LOG ) return;
+        
         Bridge.Disconnect();
 
         if ( SubSystem.Network.Renderer.Selected < 0 || !Bridge.Connect( SubSystem.Network.Renderer.Selected ) ) return;
-
-        if ( lnpg.Username != null || lnpg.Password != null || lnpg.Join != null ) return;
-
-        Grid? lipl = ( Grid? )Prefabs.Get_Template( "Login_Panel" )?.LoadContent();
-
-        if ( lipl != null )
-        {
-            lipl.Margin = new Thickness( 100, 10, 100, 10 );
-
-            TextBox? urnm = ( TextBox? )lipl.FindName( "Username" );
-            TextBox? pswd = ( TextBox? )lipl.FindName( "Password" );
-            Button?  join = ( Button?  )lipl.FindName( "Join"     );
-
-            if ( urnm != null ) lnpg.Username = urnm;
-            if ( pswd != null ) lnpg.Password = pswd;
-            if ( join != null )
-            {
-                join.Click += Login;
-
-                lnpg.Join = join;
-            }
-
-            lnpg.Login_Panel.Children.Add( lipl );
-        }
+        
+        if ( this._lPGE_._LGIN_ == null || this._lPGE_._URNM_ == null || this._lPGE_._PSWD_ == null ) return;
+        
+        this._lPGE_._PANL_.Children.Add( this._lPGE_._LGIN_ );
     }
 
     /// <summary>
+    ///     <para><b>ID :</b> [ LCRT : 02-15 ]</para>
+    ///     <para>
+    ///         <b>Description :</b> 
+    ///     
     /// 
+    ///     </para>
     /// </summary>
-    private void Disconnect ( object _   , RoutedEventArgs        __   ) 
+    private void _DNCT_ ( object _   , RoutedEventArgs    __   ) 
     {
         Bridge.Disconnect();
     }
 
     /// <summary>
+    ///     <para><b>ID :</b> [ LCRT : 02-16 ]</para>
+    ///     <para>
+    ///         <b>Description :</b> 
+    ///     
     /// 
+    ///     </para>
     /// </summary>
-    private void Login      ( object _   , RoutedEventArgs        __   ) 
+    private void _LGIN_ ( object _   , RoutedEventArgs    __   ) 
     {
-        if ( 
-            this._PAGE_ is not Login_Page lnpg              || 
-            string.IsNullOrWhiteSpace( lnpg.Username.Text ) ||
-            string.IsNullOrWhiteSpace( lnpg.Password.Text )
+        if (
+            this._PAGE_        != Page.LOG                  || 
+            this._lPGE_._URNM_ == null                      ||
+            this._lPGE_._PSWD_ == null                      ||
+            string.IsNullOrWhiteSpace( _lPGE_._URNM_.Text ) ||
+            string.IsNullOrWhiteSpace( _lPGE_._PSWD_.Text )
         ) return;
 
-        if ( !Registry.Authenticate( lnpg.Username.Text, lnpg.Password.Text ) ) return;
+        Registry.Initialize( Bridge.Mode.CNT, _lPGE_._URNM_.Text );
 
-        this._cINIT_       (                                     );
-        Messager.Initialize( Bridge.Mode.CNT, lnpg.Username.Text );
+        if ( !Registry.Login( _lPGE_._URNM_.Text, _lPGE_._PSWD_.Text ) ) return;
+
+        this._SWCH_        (                                     );
+        Messager.Initialize( Bridge.Mode.CNT, _lPGE_._URNM_.Text );
         Messager.Request   ( Messager.ALL                        );
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    private void Send       ( object _   , RoutedEventArgs        __   ) 
-    {
-        this.Send();
     }
 
     // SCROLL EVENTS //
 
     /// <summary>
+    ///     <para><b>ID :</b> [ LCRT : 02-17 ]</para>
+    ///     <para>
+    ///         <b>Description :</b> 
+    ///     
     /// 
+    ///     </para>
     /// </summary>
-    private void Cycle      ( object _   , ScrollChangedEventArgs __   ) 
+    /// <param name = "inpt"></param>
+    private void _DAMP_ ( object sndr, MouseWheelEventArgs    inpt ) 
     {
-        if ( !this._CYCL_ && this._PAGE_ is Chat_Page ctpg )
+        if ( sndr is not ScrollViewer scrl ) return;
+
+        scrl.ScrollToVerticalOffset( scrl.VerticalOffset - inpt.Delta * 0.25 );
+
+        inpt.Handled = true;
+    }
+
+    /// <summary>
+    ///     <para><b>ID :</b> [ LCRT : 02-18 ]</para>
+    ///     <para>
+    ///         <b>Description :</b> 
+    ///     
+    /// 
+    ///     </para>
+    /// </summary>
+    private void _SCRL_ ( object _   , ScrollChangedEventArgs __   ) 
+    {
+        if ( !this._CYCL_ && this._PAGE_ == Page.CHT )
         {
             this._CYCL_ = true;
 

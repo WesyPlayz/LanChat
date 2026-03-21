@@ -2,8 +2,7 @@
 ///
 /// UPDATED   : 3/12/2026 00:00
 /// 
-/// REMAINING : 
-///     Terminal_Page CLASS
+/// REMAINING : FINISHED ( SUBECT TO UPDATE )
 
 #region GENERAL HEADER
 
@@ -34,14 +33,17 @@ public        interface uiPage {}
 /// </summary>
 public static class     Prefabs       
 {
-    #region PRIVAATE STATIC PROPERTIES
+    #region PRIVATE  CONSTANT FIELDS
 
-    private static Dictionary< string, SolidColorBrush > _BRSHs_ = [];
-    private static Dictionary< string, Style           > _STYLs_ = [];
-    private static Dictionary< string, DataTemplate    > _TEMPs_ = [];
-    private static Dictionary< string, Effect          > _EFCTs_ = [];
+    private const string _URI_ = "/Assets/Prefabs.xaml";
 
-    private static string                                _URI_   = "/Assets/Prefabs.xaml";
+    #endregion
+    #region PRIVAATE STATIC   FIELDS
+
+    private static Dictionary< string, SolidColorBrush > _BRSHs_ = []   ;
+    private static Dictionary< string, Style           > _STYLs_ = []   ;
+    private static Dictionary< string, DataTemplate    > _TEMPs_ = []   ;
+    private static Dictionary< string, Effect          > _EFCTs_ = []   ;
 
     private static bool                                  _FILD_  = false;
 
@@ -157,70 +159,4 @@ public sealed class     Terminal_Page (
     public TextBox      Input            = inpt;
     public ScrollViewer Scroll_Space     = scrl;
     public StackPanel   Commands         = cmds;
-}
-
-/// <summary>
-/// 
-/// </summary>
-/// <param name = "inpt"></param>
-/// <param name = "scrl"></param>
-/// <param name = "srvs"></param>
-public sealed class     Login_Page    (
-    TextBox      inpt = null!,
-    ScrollViewer scrl = null!,
-    StackPanel   srvs = null!,
-    StackPanel   lipl = null!,
-    TextBox      urnm = null!,
-    TextBox      pswd = null!,
-    Button       join = null!
-
-) : uiPage {
-    #region PUBLIC INSTANCE FIELDS
-
-    public TextBox      Input        = inpt;
-    public ScrollViewer Scroll_Space = scrl;
-    public StackPanel   Servers      = srvs;
-    public StackPanel   Login_Panel  = lipl;
-    public TextBox      Username     = urnm;
-    public TextBox      Password     = pswd;
-    public Button       Join         = join;
-
-    #endregion
-    #region PUBLIC STATIC   FIELDS
-
-    public static DataTemplate Server = null!;
-
-    #endregion
-}
-
-/// <summary>
-/// 
-/// </summary>
-/// <param name = "inpt"></param>
-/// <param name = "scrl"></param>
-/// <param name = "msgs"></param>
-/// <param name = "actv"></param>
-/// <param name = "inac"></param>
-public sealed class     Chat_Page     (
-    TextBox      inpt = null!,
-    ScrollViewer scrl = null!,
-    StackPanel   msgs = null!,
-    StackPanel   actv = null!,
-    StackPanel   inac = null!
-) : uiPage {
-    #region PUBLIC INSTANCE FIELDS
-
-    public TextBox      Input            = inpt;
-    public ScrollViewer Scroll_Space     = scrl;
-    public StackPanel   Messages         = msgs;
-    public StackPanel   Active_Clients   = actv;
-    public StackPanel   Inactive_Clients = inac;
-
-    #endregion
-    #region PUBLIC STATIC   FIELDS
-
-    public static DataTemplate Client  = null!;
-    public static DataTemplate Message = null!;
-
-    #endregion
 }

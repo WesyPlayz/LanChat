@@ -1,8 +1,14 @@
-﻿<Application 
+﻿<!-- AUTHOR    : Ryan L Harding                 -->
+<!-- UPDATED   : 3/14/2026 08:54                -->
+<!-- REMAINING : FINISHED ( SUBJECT TO UPDATE ) -->
+    
+<!-- CONTENTS  :                                -->
+<!-- App - CLASS                                -->
+
+<Application 
     x:Class      = "LanChat.Runtime.App"
     xmlns        = "http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x      = "http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local  = "clr-namespace:LanChat.Runtime"
     ShutdownMode = "OnExplicitShutdown"
->
-</Application>
+/>

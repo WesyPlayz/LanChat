@@ -35,6 +35,8 @@
     <None Remove="Assets\Fonts\Orbitron\Orbitron-Regular.ttf" />
     <None Remove="Assets\Fonts\Orbitron\Orbitron-SemiBold.ttf" />
     <None Remove="Assets\Fonts\Orbitron\Orbitron-VariableFont_wght.ttf" />
+    <None Remove="Assets\Images\Button.png" />
+    <None Remove="Assets\Images\Button_HVR.png" />
     <None Remove="Assets\Images\Client.png" />
     <None Remove="Assets\Images\Client_HVR.png" />
     <None Remove="Assets\Images\Enter.png" />
@@ -45,6 +47,8 @@
     <None Remove="Assets\Images\Minimize.png" />
     <None Remove="Assets\Images\Server.png" />
     <None Remove="Assets\Images\Server_HVR.png" />
+    <None Remove="Assets\Images\Wide_Button.png" />
+    <None Remove="Assets\Images\Wide_Button_HVR.png" />
     <None Remove="Assets\Images\Windowed.png" />
   </ItemGroup>
 
@@ -128,6 +132,12 @@
     <Resource Include="Assets\Fonts\Orbitron\Orbitron-VariableFont_wght.ttf">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Assets\Images\Button.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\Button_HVR.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Assets\Images\Client.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
@@ -162,6 +172,15 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Assets\Prefabs.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\Images\Wide_Button.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\Wide_Button_HVR.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>

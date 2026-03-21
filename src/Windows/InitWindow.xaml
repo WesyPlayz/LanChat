@@ -1,7 +1,11 @@
-﻿<!-- AUTHOR  : Ryan L Harding  -->
-<!--                           -->
-<!-- UPDATED : 2/17/2026 14:28 -->
-
+﻿<!-- AUTHOR    : Ryan L Harding                 -->
+<!-- UPDATED   : 3/15/2026 08:13                -->
+<!-- REMAINING : FINISHED ( SUBJECT TO UPDATE ) -->
+    
+<!-- CONTENTS  :                                -->
+<!-- InitWindow         - CLAS                  -->
+<!-- ^  Screen_Space    - ELMT                  -->
+<!-- ^  Selection_Panel - ELMT                  -->
 <Window 
     x:Class            = "LanChat.Runtime.InitWindow"
     
@@ -38,6 +42,8 @@
         </Grid.ColumnDefinitions>
 
         <Grid
+            x:Name      = "Selection_Panel"
+            
             Grid.Row    = "3"
             Grid.Column = "2"
         >
@@ -46,114 +52,6 @@
                 <ColumnDefinition Width = "auto"/>
                 <ColumnDefinition Width = "auto"/>
             </Grid.ColumnDefinitions>
-
-            <Button 
-                Click           = "Client"     
-                MouseEnter      = "Client_HVR"     
-    
-                Grid.Column     = "0" 
-    
-                Width           = "80" 
-
-                BorderThickness = "0"
-                Background      = "Transparent"
-    
-                Margin          = "30 10"
-            >
-                <Button.Template>
-                    <ControlTemplate TargetType = "Button">
-                        <Image x:Name = "Icon" Source = "/Assets/Images/Client.png"/>
-                        
-                        <ControlTemplate.Triggers>
-                            <Trigger Property = "IsMouseOver" Value = "True">
-                                <Setter TargetName = "Icon" Property = "Source" Value = "/Assets/Images/Client_HVR.png"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Button.Template>
-            </Button> <!-- CLIENT     BUTTON -->
-            <Button 
-                Click           = "Local_Host"     
-                MouseEnter      = "Local_Host_HVR"     
-    
-                Grid.Column     = "1" 
-    
-                Width           = "80" 
-
-                BorderThickness = "0"
-                Background      = "Transparent"
-    
-                Margin          = "30 10"
-            >
-                <Button.Template>
-                    <ControlTemplate TargetType = "Button">
-                        <Image x:Name = "Icon" Source = "/Assets/Images/Local_Host.png"/>
-                        
-                        <ControlTemplate.Triggers>
-                            <Trigger Property = "IsMouseOver" Value = "True">
-                                <Setter TargetName = "Icon" Property = "Source" Value = "/Assets/Images/Local_Host_HVR.png"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Button.Template>
-            </Button> <!-- LOCAL HOST BUTTON -->
-            <Button 
-                Click           = "Server"     
-                MouseEnter      = "Server_HVR"     
-                
-                Grid.Column     = "2" 
-                
-                Width           = "80" 
-
-                BorderThickness = "0"
-                Background      = "Transparent"
-                
-                Margin          = "30 10"
-            >
-                <Button.Template>
-                    <ControlTemplate TargetType = "Button">
-                        <Image x:Name = "Icon" Source = "/Assets/Images/Server.png"/>
-                        
-                        <ControlTemplate.Triggers>
-                            <Trigger Property = "IsMouseOver" Value = "True">
-                                <Setter TargetName = "Icon" Property = "Source" Value = "/Assets/Images/Server_HVR.png"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Button.Template>
-            </Button> <!-- SERVER     BUTTON -->
         </Grid>
-
-        <TextBlock
-            Grid.Row            = "2"
-            Grid.Column         = "2"
-    
-            Text                = "Pick a process to run LanChat on."
-    
-            FontSize            = "25"
-    
-            Foreground          = "#dfdfdf"
-            
-            VerticalAlignment   = "Center"
-            HorizontalAlignment = "Center"
-    
-            TextWrapping        = "Wrap"
-            Margin              = "25"
-        /> <!-- INSTRUCTION TEXT -->
-        <TextBlock
-            x:Name       = "Description"
-            
-            Grid.Row     = "4"
-            Grid.Column  = "2"
-            
-            Text         = "{Binding}"
-            
-            FontSize     = "15"
-            
-            Foreground   = "#dfdfdf"
-            
-            TextWrapping = "Wrap"
-            Margin       = "25"
-        /> <!-- DESCRIPTION TEXT -->
     </Grid>
 </Window>

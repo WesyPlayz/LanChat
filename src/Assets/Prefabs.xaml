@@ -66,6 +66,14 @@
         <Setter Property = "TextWrapping" Value = "Wrap"/>
     </Style>
 
+    <Style x:Key = "Text3" TargetType = "TextBlock">
+        <Setter Property = "FontSize"     Value = "25"/>
+
+        <Setter Property = "Foreground"   Value = "{ StaticResource Primary0 }"/>
+
+        <Setter Property = "TextWrapping" Value = "Wrap"/>
+    </Style>
+
     <Style x:Key = "Input0" TargetType = "TextBox">
         <Setter Property = "FontSize"        Value = "15"/>
 
@@ -79,6 +87,44 @@
     </Style>
 
     <!-- BUTTON STYLES -->
+
+    <Style x:Key = "Button0" TargetType = "Button">
+        <Setter      Property = "BorderThickness" Value   = "0"/>
+        <Setter      Property = "Background"      Value   = "Transparent"/>
+
+        <Setter      Property = "Template">
+            <Setter.Value>
+                <ControlTemplate TargetType = "Button">
+                    <Image x:Name = "Icon" Source = "/Assets/Images/Button.png"/>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property = "IsMouseOver" Value = "True">
+                            <Setter TargetName = "Icon" Property = "Source" Value = "/Assets/Images/Button_HVR.png"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key = "Button1" TargetType = "Button">
+        <Setter      Property = "BorderThickness" Value   = "0"/>
+        <Setter      Property = "Background"      Value   = "Transparent"/>
+
+        <Setter      Property = "Template">
+            <Setter.Value>
+                <ControlTemplate TargetType = "Button">
+                    <Image x:Name = "Icon" Source = "/Assets/Images/Wide_Button.png"/>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property = "IsMouseOver" Value = "True">
+                            <Setter TargetName = "Icon" Property = "Source" Value = "/Assets/Images/Wide_Button_HVR.png"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 
     <Style x:Key = "Minimize_Button" TargetType = "Button">
         <Setter      Property = "BorderThickness" Value   = "0"/>
@@ -111,6 +157,63 @@
                     <ControlTemplate.Triggers>
                         <Trigger Property = "IsMouseOver" Value = "True">
                             <Setter TargetName = "Icon" Property = "Opacity" Value = "0.5"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key = "Client_Button" TargetType = "Button">
+        <Setter      Property = "BorderThickness" Value   = "0"/>
+        <Setter      Property = "Background"      Value   = "Transparent"/>
+
+        <Setter      Property = "Template">
+            <Setter.Value>
+                <ControlTemplate TargetType = "Button">
+                    <Image x:Name = "Icon" Source = "/Assets/Images/Client.png"/>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property = "IsMouseOver" Value = "True">
+                            <Setter TargetName = "Icon" Property = "Source" Value = "/Assets/Images/Client_HVR.png"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key = "Local_Host_Button" TargetType = "Button">
+        <Setter      Property = "BorderThickness" Value   = "0"/>
+        <Setter      Property = "Background"      Value   = "Transparent"/>
+
+        <Setter      Property = "Template">
+            <Setter.Value>
+                <ControlTemplate TargetType = "Button">
+                    <Image x:Name = "Icon" Source = "/Assets/Images/Local_Host.png"/>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property = "IsMouseOver" Value = "True">
+                            <Setter TargetName = "Icon" Property = "Source" Value = "/Assets/Images/Local_Host_HVR.png"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key = "Server_Button" TargetType = "Button">
+        <Setter      Property = "BorderThickness" Value   = "0"/>
+        <Setter      Property = "Background"      Value   = "Transparent"/>
+
+        <Setter      Property = "Template">
+            <Setter.Value>
+                <ControlTemplate TargetType = "Button">
+                    <Image x:Name = "Icon" Source = "/Assets/Images/Server.png"/>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property = "IsMouseOver" Value = "True">
+                            <Setter TargetName = "Icon" Property = "Source" Value = "/Assets/Images/Server_HVR.png"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -579,6 +682,35 @@
             </ScrollViewer>
         </Grid>
     </DataTemplate>
+    
+    <!-- BUTTON TEMPLATES -->
+
+    <DataTemplate x:Key = "Text_Button">
+        <Grid
+            Panel.ZIndex = "4"
+        >
+            <TextBlock
+                x:Name              = "Label"
+                
+                Height              = "25"
+    
+                TextAlignment       = "Center"
+    
+                HorizontalAlignment = "Center"
+                VerticalAlignment   = "Center"
+    
+                Style               = "{ StaticResource Text1 }"
+            />
+
+            <Button
+                x:Name      = "Button"
+
+                Height      = "25"
+    
+                Style       = "{ StaticResource Button1 }"
+            />
+        </Grid>
+    </DataTemplate>
 
     <!-- INPUT TEMPLATES -->
 
@@ -701,7 +833,9 @@
     </DataTemplate>
 
     <DataTemplate x:Key = "Login_Panel">
-        <Grid>
+        <Grid 
+            Panel.ZIndex = "4" 
+        >
             <Grid.RowDefinitions>
                 <RowDefinition Height = "auto"/>
                 <RowDefinition Height = "auto"/>
@@ -717,10 +851,10 @@
             <TextBlock
                 Text              = "Username : "
         
-                Foreground        = "White"
+                Foreground        = "{ StaticResource Primary0 }"
         
                 VerticalAlignment = "Center"
-        
+                
                 Margin            = "10 0"
             >
             </TextBlock>
@@ -730,7 +864,7 @@
         
                 Grid.Row          = "1"
     
-                Foreground        = "White"
+                Foreground        = "{ StaticResource Primary0 }"
     
                 VerticalAlignment = "Center"
     
@@ -747,6 +881,8 @@
                 Height      = "25"
         
                 Margin      = "0 10"
+                
+                Style       = "{ StaticResource Input0 }"
             >
             </TextBox>
 
@@ -759,23 +895,41 @@
                 Height      = "25"
         
                 Margin      = "0 10"
+                
+                Style       = "{ StaticResource Input0 }"
             >
             </TextBox>
 
-            <Button
-                x:Name          = "Join"
-        
-                Content         = "Join"
-        
-                Grid.Row        = "2"
-                Grid.Column     = "1"
-        
-                Height          = "25"
-        
-                Margin          = "0 25"
-            >
+            <TextBlock
+                Grid.Row            = "2"
+                Grid.Column         = "1"
+    
+                Height              = "25"
+    
+                Text                = "Join"
+    
+                TextAlignment       = "Center"
+    
+                HorizontalAlignment = "Center"
+                VerticalAlignment   = "Center"
+    
+                Margin              = "0 25"
+    
+                Style               = "{ StaticResource Text1 }"
+            />
 
-            </Button>
+            <Button
+                x:Name      = "Join"
+        
+                Grid.Row    = "2"
+                Grid.Column = "1"
+        
+                Height      = "25"
+        
+                Margin      = "0 25"
+                
+                Style       = "{ StaticResource Button0 }"
+            />
         </Grid>
     </DataTemplate>
 
